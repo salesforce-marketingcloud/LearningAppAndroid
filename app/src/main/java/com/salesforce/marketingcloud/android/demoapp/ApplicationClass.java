@@ -26,10 +26,17 @@ import com.exacttarget.etpushsdk.event.RegistrationEvent;
 import com.exacttarget.etpushsdk.util.EventBus;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
+import com.google.android.gms.gcm.GoogleCloudMessaging;
+import com.google.android.gms.iid.InstanceID;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
+
+import hugo.weaving.DebugLog;
 
 
 /**
@@ -41,6 +48,7 @@ import java.util.LinkedHashSet;
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class ApplicationClass extends Application implements ETLogListener, ETPushConfigureSdkListener {
 
     /**
@@ -66,7 +74,7 @@ public class ApplicationClass extends Application implements ETLogListener, ETPu
      * Set to true to show how geo fencing works within the SDK.
      */
     public static final boolean LOCATION_ENABLED = true;
-    private static final String TAG = "ApplicationClass";
+    private static final String TAG = "~#ApplicationClass";
     private static final LinkedHashSet<EtPushListener> listeners = new LinkedHashSet<>();
     private static ETPush etPush;
 
@@ -157,8 +165,16 @@ public class ApplicationClass extends Application implements ETLogListener, ETPu
 
         // If there was an user recoverable issue with Google Play Services then show a notification to the user
         int googlePlayServicesStatus = etRequestStatus.getGooglePlayServiceStatusCode();
-        if (googlePlayServicesStatus != ConnectionResult.SUCCESS && GoogleApiAvailability.getInstance().isUserResolvableError(googlePlayServicesStatus)) {
-            GoogleApiAvailability.getInstance().showErrorNotification(this, googlePlayServicesStatus);
+        String statusMessage = GoogleApiAvailability.getInstance().getErrorString(googlePlayServicesStatus);
+        boolean userResolvableError = GoogleApiAvailability.getInstance().isUserResolvableError(googlePlayServicesStatus);
+        boolean googlePlayServicesAvailable = googlePlayServicesStatus == ConnectionResult.SUCCESS;
+
+        Log.i(TAG, String.format(Locale.ENGLISH, "Google Play Services Availability: %s", statusMessage));
+        if (!googlePlayServicesAvailable) {
+            Log.i(TAG, String.format(Locale.ENGLISH, "Is user resolvable? %s", String.valueOf(userResolvableError)));
+            if (userResolvableError) {
+                GoogleApiAvailability.getInstance().showErrorNotification(this, googlePlayServicesStatus);
+            }
         }
 
         String sdkState;

@@ -6,135 +6,185 @@
  */
 package com.salesforce.marketingcloud.android.demoapp;
 
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.CheckBoxPreference;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceCategory;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceScreen;
+import android.support.annotation.NonNull;
+import android.support.annotation.Size;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.Toast;
 
 import com.exacttarget.etpushsdk.ETAnalytics;
 import com.exacttarget.etpushsdk.ETException;
 import com.exacttarget.etpushsdk.ETPush;
+import com.exacttarget.etpushsdk.data.Attribute;
 import com.salesforce.marketingcloud.android.demoapp.utils.Utils;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Set;
+
+import hugo.weaving.DebugLog;
 
 /**
  * SettingsFragment handles settings that would normally be included within your customer facing app.
  * These settings that are sent to the Marketing Cloud will take up to 15 minutes to take effect.
  * So, after setting or changing these settings, you should wait at least 15 minutes before sending
  * a message from the Marketing Cloud.
- *
+ * <p>
  * Your app design may be different (for example, you may set notifications on by default in your
  * Application class if you assume permission was given by the user due to the permission settings
  * set within the Google Play definition.
  * <p/>
  * Settings:
  * <ol>
- *     <li>
- *         <b>Subscriber Key</b>
- *         <br/>
- *         This attribute provides a primary key for the Contact record stored in the Salesforce Marketing Cloud.
- *     </li>
- *     <li>
- *         <b>Tags</b>
- *         <br/>
- *         The Tags section show examples of using Tags to allow your customers to select which type
- *         of notification they are interested in receiving, and create new tags.
- *         The tags are sent to the Marketing Cloud and can be used to select customers to send the notification to.
- *     </li>
+ * <li>
+ * <b>Subscriber Key</b>
+ * <br/>
+ * This attribute provides a primary key for the Contact record stored in the Salesforce Marketing Cloud.
+ * </li>
+ * <li>
+ * <b>Tags</b>
+ * <br/>
+ * The Tags section show examples of using Tags to allow your customers to select which type
+ * of notification they are interested in receiving, and create new tags.
+ * The tags are sent to the Marketing Cloud and can be used to select customers to send the notification to.
+ * </li>
  * </ol>
- *
- *
  *
  * @author Salesforce &reg; 2015.
  */
-public class SettingsFragment extends PreferenceFragment {
-    /* Current set of tags */
-    private Set<String> allTags;
-    private ETPush pusher;
-    private SharedPreferences sp;
-    private PreferenceScreen prefScreen;
+@DebugLog
+public class SettingsFragment extends PreferenceFragment implements ApplicationClass.EtPushListener {
+    private static final String TAG = "~#SettingsFragment";
 
+    // KEYS
+    private static final String KEY_PREF_NEW_TAG = "pref_new_tag";
+    private static final String KEY_PREF_SUBSCRIBER_KEY = "pref_subscriber_key";
+    private final Handler progressDialogHandler = new Handler();
+    private final DialogRunnable dialogRunnable = new DialogRunnable();
+    private final Set<String> tags = new HashSet<>();
+    // Local Storage
+    private SharedPreferences sharedPreferences;
+    private PreferenceScreen preferenceScreen;
+    // Error/Exception Handling and Progress Indicator
+    private ProgressDialog dialog;
+    // Elements we'll use with the ETPush SDK
+    private List<Attribute> attributes = new ArrayList<>();
+    private String subscriberKey;
 
     /**
      * Retrieves the subscriber key and tags preference, listen for changes and propagate them to the SDK.
+     *
      * @param savedInstanceState
      */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.preferences);
+        sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
+        preferenceScreen = getPreferenceScreen();
+
         ETAnalytics.trackPageView("data://SettingsActivity", "Loading Settings activity");
-        this.sp = getActivity().getPreferences(Context.MODE_PRIVATE);
-        this.prefScreen = getPreferenceScreen();
 
+        ETPush etPush = ApplicationClass.getEtPush(this); // Add ourselves as an ApplicationClass.EtPushListener
+        if (etPush == null) {
+            // Display a progress dialog while we wait for ETPush to finish initializing. <-- Seeing this should be exceedingly rare!
+            dialog = ProgressDialog.show(getActivity(), "", "Waiting for ETPush to finish initializing ...", true);
+            progressDialogHandler.postDelayed(dialogRunnable, 30000);
+        } else {
+            // Hide the progress dialog & show the Attributes, SubscriberKey and Tags.  If ETPush hasn't
+            // finished initializing, the callback will get executed by our ApplicationClass.
+            this.onReadyForPush(etPush);
+        }
+    }
+
+    @Override
+    public void onReadyForPush(@NonNull final ETPush etPush) {
+        progressDialogHandler.removeCallbacks(dialogRunnable);
         try {
-            this.pusher = ETPush.getInstance();
-
-            /* Get and store tags */
-            Log.i("TAGS", this.pusher.getTags().toString());
-            this.allTags = this.pusher.getTags() != null ? this.pusher.getTags() : new HashSet<String>();
-            storeAllTags(this.allTags);
-        } catch (Exception e){
-            e.printStackTrace();
+            attributes.addAll(etPush.getAttributes());
+            subscriberKey = etPush.getSubscriberKey();
+            tags.addAll(etPush.getTags());
+        } catch (ETException e) {
+            Log.e(TAG, e.getMessage());
         }
 
-        /** SUBSCRIBER KEY PREFERENCE */
+        displayAttributes(attributes);
+        displaySubscriberKey(subscriberKey, etPush);
+        displayTags(tags, etPush);
 
-        /* KEY_PREF_SUBSCRIBER_KEY must match the key of the EditTextPreference correspondent to the subscriber key. */
-        final String KEY_PREF_SUBSCRIBER_KEY = "pref_subscriber_key";
+        // Hide the progress dialog
+        if (dialog != null) {
+            dialog.hide();
+        }
+    }
 
-        final Preference skPref = findPreference(KEY_PREF_SUBSCRIBER_KEY);
-        if (!this.sp.getString(KEY_PREF_SUBSCRIBER_KEY, "").isEmpty()) {
-            skPref.setSummary(this.sp.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
+    private void displaySubscriberKey(@NonNull final @Size(min = 1) String subscriberKey, @NonNull final ETPush etPush) {
+        if (TextUtils.isEmpty(subscriberKey) || etPush == null) {
+            // display message
+            return;
         }
 
-        skPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+        final Preference preference = findPreference(KEY_PREF_SUBSCRIBER_KEY);
+        if (!this.sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, "").isEmpty()) { // KEY_PREF_SUBSCRIBER_KEY must match the key of the EditTextPreference correspondent to the subscriber key.
+            preference.setSummary(this.sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
+        }
+
+        preference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
 
             @Override
-            public boolean onPreferenceClick(Preference preference) {
+            public boolean onPreferenceClick(final Preference preference) {
 
-                final EditTextPreference skETP = (EditTextPreference) prefScreen.findPreference(KEY_PREF_SUBSCRIBER_KEY);
+                final EditTextPreference editTextPreference = (EditTextPreference) preferenceScreen.findPreference(KEY_PREF_SUBSCRIBER_KEY);
 
-                final AlertDialog d = (AlertDialog) skETP.getDialog();
-                final EditText skET = skETP.getEditText();
-                skET.setText(sp.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
+                final AlertDialog alertDialog = (AlertDialog) editTextPreference.getDialog();
+                final EditText editText = editTextPreference.getEditText();
+                editText.setText(sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
 
-                Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
-                b.setOnClickListener(new View.OnClickListener() {
+                Button positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                positiveButton.setOnClickListener(new View.OnClickListener() {
 
+                    @SuppressLint("CommitPrefEdits")
                     @Override
                     public void onClick(android.view.View v) {
-                        String newSubscriberKey = skET.getText().toString().trim();
-                        if (newSubscriberKey.isEmpty()) {
-                            Utils.flashError(skET, getString(R.string.error_cannot_be_blank));
+                        String newSubscriberKey = editText.getText().toString().trim();
+                        if (TextUtils.isEmpty(newSubscriberKey)) {
+                            Utils.flashError(editText, getString(R.string.error_cannot_be_blank));
                             return;
                         } else {
-                            /* Save the preference to Shared Preferences */
-                            SharedPreferences.Editor editor = sp.edit();
-                            editor.putString(KEY_PREF_SUBSCRIBER_KEY, newSubscriberKey);
-                            editor.commit();
                             try {
-                                pusher.setSubscriberKey(newSubscriberKey);
-                            } catch (ETException e) {
-                                if (ETPush.getLogLevel() <= Log.ERROR) {
-                                    Log.e("TAG", e.getMessage(), e);
+                                if (etPush.setSubscriberKey(newSubscriberKey)) {
+                                    // Save the preference to Shared Preferences only if we don't encounter an error
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putString(KEY_PREF_SUBSCRIBER_KEY, newSubscriberKey);
+                                    editor.commit();
+                                } else {
+                                    Utils.flashError(editText, getString(R.string.error_could_not_update));
+                                    return;
                                 }
+                            } catch (ETException e) {
+                                Log.e("TAG", e.getMessage(), e);
+                                return;
                             }
                         }
-                        d.dismiss();
+                        alertDialog.dismiss();
+                        preference.setSummary(newSubscriberKey);
                     }
                 });
                 ETAnalytics.trackPageView("data://SettingsActivity-SubscriberKeySet", "Subscriber Key Set");
@@ -142,53 +192,54 @@ public class SettingsFragment extends PreferenceFragment {
             }
         });
 
-        this.configureTags();
+    }
 
-        /**
-         * Add new tags.
-         */
-        final Preference et = findPreference("pref_new_tag");
+    private void displayAttributes(@NonNull final List<Attribute> attributes) {
+        if (attributes.isEmpty()) {
+            // display message
+            return;
+        }
+    }
 
-        et.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+    private void displayTags(@NonNull final Set<String> tags, @NonNull final ETPush etPush) {
+        if (tags.isEmpty() || etPush == null) {
+            // display message
+            return;
+        }
+        Log.i(TAG, String.format(Locale.ENGLISH, "TAGS: %s", tags));
+        saveTagsToSharedPreferences(tags);
+        configureTags(etPush);
 
+        final Preference preference = findPreference(KEY_PREF_NEW_TAG);
+        preference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
+                final EditTextPreference editTextPreference = (EditTextPreference) preferenceScreen.findPreference(KEY_PREF_NEW_TAG);
 
-                if (pusher != null) {
+                final AlertDialog alertDialog = (AlertDialog) editTextPreference.getDialog();
+                final EditText editText = editTextPreference.getEditText();
+                editText.setText(sharedPreferences.getString(KEY_PREF_NEW_TAG, ""));
 
+                Button positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+                positiveButton.setOnClickListener(new View.OnClickListener() {
 
-                    final EditTextPreference skETP = (EditTextPreference) prefScreen.findPreference("pref_new_tag");
-
-                    final AlertDialog d = (AlertDialog) skETP.getDialog();
-                    final EditText skET = skETP.getEditText();
-                    skET.setText(sp.getString("pref_new_tag", ""));
-
-                    Button b = d.getButton(AlertDialog.BUTTON_POSITIVE);
-                    b.setOnClickListener(new View.OnClickListener() {
-
-                        @Override
-                        public void onClick(android.view.View v) {
-                            String newTagValue = skET.getText().toString().trim();
-                            if (newTagValue.isEmpty()) {
-                                Utils.flashError(skET, getString(R.string.error_cannot_be_blank));
-                                return;
-                            } else {
-                                try {
-                                    addNewTag(newTagValue);
-                                } catch (ETException e) {
-                                    if (ETPush.getLogLevel() <= Log.ERROR) {
-                                        Log.e("TAG", e.getMessage(), e);
-                                    }
-                                }
-                                configureTags();
+                    @Override
+                    public void onClick(View v) {
+                        String value = editText.getText().toString().trim();
+                        if (TextUtils.isEmpty(value)) {
+                            Utils.flashError(editText, getString(R.string.error_cannot_be_blank));
+                            return;
+                        } else {
+                            try {
+                                addTag(value, etPush);
+                            } catch (ETException e) {
+                                Log.e("TAG", e.getMessage(), e);
                             }
-
-                            d.dismiss();
+                            configureTags(etPush);
                         }
-                    });
-                } else {
-                    Toast.makeText(getActivity(), "There was a problem while loading SDK, unable to add new Tags", Toast.LENGTH_LONG).show();
-                }
+                        alertDialog.dismiss();
+                    }
+                });
                 return true;
             }
         });
@@ -199,43 +250,44 @@ public class SettingsFragment extends PreferenceFragment {
      *
      * @param pSet tags to be stored.
      */
-    private void storeAllTags(Set<String> pSet) {
+    @SuppressLint("CommitPrefEdits")
+    private void saveTagsToSharedPreferences(Set<String> pSet) {
         /* Retrieves the tags stored in Shared preferences */
-        //Set<String> setToLoad = sp.getStringSet("tags", null) == null ? new HashSet<String>() : sp.getStringSet("tags", null);
-        Set<String> setToLoad =  sp.getStringSet("tags", new HashSet<String>());
+        //Set<String> setToLoad = sharedPreferences.getStringSet("tags", null) == null ? new HashSet<String>() : sharedPreferences.getStringSet("tags", null);
+        Set<String> setToLoad = sharedPreferences.getStringSet("tags", new HashSet<String>());
         /* Adds the tags from the Set passed as parameter */
-        for (String t : pSet){
+        for (String t : pSet) {
             setToLoad.add(t);
         }
         /* Stores the tags in Shared Preferences */
-        SharedPreferences.Editor editor = sp.edit();
+        SharedPreferences.Editor editor = sharedPreferences.edit();
         Set<String> setToSave = new HashSet<>();
         setToSave.addAll(setToLoad);
         editor.putStringSet("tags", setToSave);
         editor.commit();
-        allTags = setToLoad;
+        tags.clear();
+        tags.addAll(setToLoad);
     }
 
     /**
      * Receives a Tag to store in Shared preferences
      *
      * @param tag a new Tag to be added.
-     *
      */
-    private void addNewTag(String tag) throws ETException{
-        Set tempSet = new HashSet<>();
+    private void addTag(@NonNull final String tag, @NonNull final ETPush etPush) throws ETException {
+        Set<String> tempSet = new HashSet<>();
         tempSet.add(tag);
-        pusher.addTag(tag);
-        storeAllTags(tempSet);
+        etPush.addTag(tag);
+        saveTagsToSharedPreferences(tempSet);
     }
 
     /**
      * Configures the Shared Preferences section to be displayed.
      */
-    private void configureTags(){
+    private void configureTags(@NonNull final ETPush etPush) {
         /* Create a new PreferenceCategory if not already created. */
-        PreferenceCategory tagsSection = (PreferenceCategory)this.prefScreen.findPreference("pref_tag_section");
-        if (this.prefScreen.findPreference("pref_tag_section") == null) {
+        PreferenceCategory tagsSection = (PreferenceCategory) this.preferenceScreen.findPreference("pref_tag_section");
+        if (this.preferenceScreen.findPreference("pref_tag_section") == null) {
             tagsSection = new PreferenceCategory(getActivity());
             tagsSection.setTitle(getResources().getString(R.string.pref_tag_category_title));
             tagsSection.setKey("pref_tag_section");
@@ -248,11 +300,11 @@ public class SettingsFragment extends PreferenceFragment {
             EditTextPreference et = new EditTextPreference(getActivity());
             et.setDefaultValue("");
             et.setDialogMessage(getResources().getString(R.string.pref_new_tag_summ));
-            et.setKey("pref_new_tag");
+            et.setKey(KEY_PREF_NEW_TAG);
             et.setSummary(getResources().getString(R.string.pref_new_tag_summ));
             et.setTitle(getResources().getString(R.string.pref_new_tag));
             /* Add the PreferenceCategory to the Preference's screen. */
-            this.prefScreen.addPreference(tagsSection);
+            this.preferenceScreen.addPreference(tagsSection);
             /* Add the 'About' section to Tags section */
             tagsSection.addPreference(about);
             /* Add the new Tag section to the PreferenceCategory. */
@@ -260,20 +312,20 @@ public class SettingsFragment extends PreferenceFragment {
         }
 
         /* Create rows from list of tags. */
-        for (String tag : this.allTags){
-            addTagCheckbox(tagsSection, tag);
+        for (String tag : this.tags) {
+            addTagCheckbox(tagsSection, tag, etPush);
         }
     }
 
     /**
      * Creates a row from the tag passed in as parameter to be displayed.
      *
-     * @param prefCat  the section where the Tag will be displayed.
-     * @param tag      the Tag to be displayed on the screen.
+     * @param prefCat the section where the Tag will be displayed.
+     * @param tag     the Tag to be displayed on the screen.
      */
-    private void addTagCheckbox(PreferenceCategory prefCat, final String tag) {
+    private void addTagCheckbox(PreferenceCategory prefCat, final String tag, @NonNull final ETPush etPush) {
         /* Creates a new row if is not already created for the Tag. */
-        CheckBoxPreference cbp = (CheckBoxPreference) this.prefScreen.findPreference(tag);
+        CheckBoxPreference cbp = (CheckBoxPreference) this.preferenceScreen.findPreference(tag);
         if (cbp == null) {
             cbp = new CheckBoxPreference(getActivity());
             cbp.setKey(tag);
@@ -290,9 +342,9 @@ public class SettingsFragment extends PreferenceFragment {
                     Boolean enabled = (Boolean) newValue;
                     try {
                         if (enabled) {
-                            pusher.addTag(tag);
+                            etPush.addTag(tag);
                         } else {
-                            pusher.removeTag(tag);
+                            etPush.removeTag(tag);
                         }
                     } catch (ETException e) {
                         if (ETPush.getLogLevel() <= Log.ERROR) {
@@ -304,6 +356,15 @@ public class SettingsFragment extends PreferenceFragment {
             });
             /* Add row to section. */
             prefCat.addPreference(cbp);
+        }
+    }
+
+    private class DialogRunnable implements Runnable {
+        @Override
+        public void run() {
+            dialog.hide();
+            dialog = ProgressDialog.show(getActivity(), "ERROR", "Error initializing ETPush.", false, true);
+            // Display error message
         }
     }
 
