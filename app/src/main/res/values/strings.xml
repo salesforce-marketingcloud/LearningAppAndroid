@@ -51,5 +51,6 @@
     <!-- Map -->
     <string name="default_latitude">37.7842955</string>
     <string name="default_longitude">-122.4301521</string>
+    <string name="error_could_not_update">Subscriber Key is Invalid</string>
 
 </resources>

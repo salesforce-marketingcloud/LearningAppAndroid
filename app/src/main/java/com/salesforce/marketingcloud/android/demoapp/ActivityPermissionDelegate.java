@@ -13,12 +13,15 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Size;
 import android.support.v4.app.ActivityCompat;
 
+import hugo.weaving.DebugLog;
+
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 /**
  * Created by kpoorman on 2/1/16.
  * Largely lifted from @AndroidFu's excellent ETPushHelloWorld.
  * Only affects applications targeting Android API23
  */
+@DebugLog
 public class ActivityPermissionDelegate {
     public interface PermissionRationaleRetryBehavior {
         void requestAgain();

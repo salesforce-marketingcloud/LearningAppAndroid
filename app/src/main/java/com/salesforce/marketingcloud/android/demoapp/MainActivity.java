@@ -24,6 +24,8 @@ import com.exacttarget.etpushsdk.ETLocationManager;
 import com.exacttarget.etpushsdk.ETPush;
 import com.exacttarget.etpushsdk.util.EventBus;
 
+import hugo.weaving.DebugLog;
+
 /**
  * MainActivity is the primary activity.
  *
@@ -31,9 +33,10 @@ import com.exacttarget.etpushsdk.util.EventBus;
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class MainActivity extends AppCompatActivity implements ApplicationClass.EtPushListener {
 
-    private final static String TAG = "MAIN ACTIVITY";
+    private final static String TAG = "~#MAIN ACTIVITY";
     private ActivityPermissionDelegate permissionDelegate;
     private ETPush etPush;
 
@@ -119,6 +122,7 @@ public class MainActivity extends AppCompatActivity implements ApplicationClass.
              */
             etPush.addAttribute("FirstName", "John");
             etPush.addAttribute("LastName", "Doe");
+            etPush.setSubscriberKey("me@salesforce.com");
 
             /*
                 A good practice is to add the application's version name as a tag that can later

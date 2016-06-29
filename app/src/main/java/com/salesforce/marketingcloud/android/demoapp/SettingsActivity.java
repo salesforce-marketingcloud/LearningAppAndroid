@@ -9,6 +9,8 @@ package com.salesforce.marketingcloud.android.demoapp;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 
+import hugo.weaving.DebugLog;
+
 /**
  * SettingsActivity is the primary settings activity.
  *
@@ -20,6 +22,7 @@ import android.support.v7.app.AppCompatActivity;
  * @author Salesforce &reg; 2015.
  */
 
+@DebugLog
 public class SettingsActivity extends AppCompatActivity {
 
     @Override

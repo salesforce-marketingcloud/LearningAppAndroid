@@ -14,11 +14,14 @@ import android.view.ViewGroup;
 
 import com.exacttarget.etpushsdk.ETAnalytics;
 
+import hugo.weaving.DebugLog;
+
 /**
  * A placeholder fragment containing the home view.
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class MainActivityFragment extends Fragment {
 
     @Override

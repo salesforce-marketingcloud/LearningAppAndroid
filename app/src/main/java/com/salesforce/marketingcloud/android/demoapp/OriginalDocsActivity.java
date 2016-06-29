@@ -6,32 +6,23 @@
  */
 package com.salesforce.marketingcloud.android.demoapp;
 
-import android.content.Context;
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.AdapterView;
-import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RadioGroup;
-import android.widget.TextView;
 
 import com.exacttarget.etpushsdk.ETAnalytics;
-import com.exacttarget.etpushsdk.adapter.CloudPageListAdapter;
-import com.exacttarget.etpushsdk.data.Message;
+
+import hugo.weaving.DebugLog;
 
 /**
  * CloudPageInboxActivity works as an inbox for the Cloud Pages received.
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class OriginalDocsActivity extends AppCompatActivity {
 
     @Override

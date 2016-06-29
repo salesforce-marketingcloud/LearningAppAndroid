@@ -25,11 +25,14 @@ import com.exacttarget.etpushsdk.ETAnalytics;
 import com.exacttarget.etpushsdk.adapter.CloudPageListAdapter;
 import com.exacttarget.etpushsdk.data.Message;
 
+import hugo.weaving.DebugLog;
+
 /**
  * CloudPageInboxActivity works as an inbox for the Cloud Pages received.
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class CloudPageInboxActivity extends AppCompatActivity {
     private MyCloudPageListAdapter cloudPageListAdapter;
 

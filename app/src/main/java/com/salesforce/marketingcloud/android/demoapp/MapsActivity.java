@@ -22,11 +22,14 @@ import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import hugo.weaving.DebugLog;
+
 /**
  * MapsActivity displays a Google map with the regions configured at Marketing Cloud.
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     @Override

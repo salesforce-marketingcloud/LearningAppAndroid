@@ -13,11 +13,14 @@ import android.webkit.WebView;
 import android.widget.LinearLayout;
 import com.exacttarget.etpushsdk.ETAnalytics;
 
+import hugo.weaving.DebugLog;
+
 /**
  * CloudPageActivity displays a Cloud Page.
  *
  * @author Salesforce &reg; 2015.
  */
+@DebugLog
 public class CloudPageActivity extends AppCompatActivity {
 
     @Override
