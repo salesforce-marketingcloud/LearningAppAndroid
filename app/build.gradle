@@ -49,17 +49,18 @@ configurations.all {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.5.0.728-SNAPSHOT@aar') {
+    compile('com.exacttarget.etpushsdk:etsdk:4.5.0.731-SNAPSHOT@aar') {
         changing = true
         transitive = true
     }
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
 
     compile 'com.google.android.gms:play-services-maps:9.2.0'
     /* 3rd Party Libraries Required ONLY if you are using Beacons */
-    compile 'org.altbeacon:android-beacon-library:2.5.1@aar'
+    //compile 'org.altbeacon:android-beacon-library:2.7@aar'
 
     /* For this app only */
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:appcompat-v7:23.4.0'
+    compile 'com.android.support:design:23.4.0'
 
 }
