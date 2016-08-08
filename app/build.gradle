@@ -39,9 +39,11 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.4.0@aar') {
+    compile('com.exacttarget.etpushsdk:etsdk:4.6.0.1055-SNAPSHOT@aar') {
             transitive = true;
     }
+
+    compile 'com.google.android.gms:play-services-maps:9.2.0'
 
     // This particular app, requires appCompat and design
     compile 'com.android.support:appcompat-v7:23.1.1'
