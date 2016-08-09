@@ -140,7 +140,7 @@ public class MainActivity extends AppCompatActivity implements ApplicationClass.
                             try {
                                 ETLocationManager etLocationManager = ETLocationManager.getInstance();
                                 etLocationManager.startWatchingLocation();
-                                etLocationManager.startWatchingProximity();
+                                etLocationManager.startWatchingProximity(ETLocationManager.BEACON_LOGGING_VERBOSE);
                             } catch (ETException e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }

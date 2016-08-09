@@ -7,13 +7,22 @@
 package com.salesforce.marketingcloud.android.demoapp;
 
 import android.app.Application;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.exacttarget.etpushsdk.ETAnalytics;
 import com.exacttarget.etpushsdk.ETException;
 import com.exacttarget.etpushsdk.ETLogListener;
+import com.exacttarget.etpushsdk.ETNotificationBuilder;
+import com.exacttarget.etpushsdk.ETNotifications;
 import com.exacttarget.etpushsdk.ETPush;
 import com.exacttarget.etpushsdk.ETPushConfig;
 import com.exacttarget.etpushsdk.ETPushConfigureSdkListener;
@@ -28,8 +37,13 @@ import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedHashSet;
+import java.util.Locale;
+import java.util.TimeZone;
 
 
 /**
@@ -177,6 +191,51 @@ public class ApplicationClass extends Application implements ETLogListener, ETPu
             }
             listeners.clear();
         }
+
+        ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
+            @Override
+            public NotificationCompat.Builder setupNotificationBuilder(Context context, Bundle payload) {
+                NotificationCompat.Builder builder = ETNotifications.setupNotificationBuilder(context, payload);
+
+                String category = payload.getString("category");
+                if (!TextUtils.isEmpty(category )) {
+                    if ("Testing".equalsIgnoreCase("testing")) {
+                        //we need to add the 3 item_spotlight buttons to the notification. Android allows
+                        //a max of 3 action buttons on the BigStyle notifications.
+                        Intent similarIntent = new Intent(context, MainActivity.class);
+                        similarIntent.putExtras(payload);
+                        PendingIntent similarPendingIntent = ETNotifications.createPendingIntentWithOpenAnalytics(context, similarIntent, true);
+                        builder.addAction(R.mipmap.app_logo, "Pay Now", similarPendingIntent);
+
+                    } else if ("sale".equalsIgnoreCase(category)) {
+                        //get custom key for the sale date.
+                        String saleDateString = payload.getString("sale_date");
+                        if (saleDateString != null && !saleDateString.isEmpty()) {
+                            try {
+                                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                                df.setTimeZone(TimeZone.getDefault());
+                                Date saleDate = df.parse(saleDateString);
+
+                                Intent intent = new Intent(Intent.ACTION_INSERT)
+                                        .setData(CalendarContract.Events.CONTENT_URI)
+                                        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, saleDate.getTime())
+                                        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, saleDate.getTime())
+                                        .putExtra(CalendarContract.Events.TITLE, payload.getString("event_title"))
+                                        .putExtra(CalendarContract.Events.DESCRIPTION, payload.getString("alert"))
+                                        .putExtra(CalendarContract.Events.HAS_ALARM, 1)
+                                        .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
+
+                                PendingIntent reminderPendingIntent = PendingIntent.getActivity(context, 38456, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                                builder.addAction(R.mipmap.app_logo, "Add Reminder", reminderPendingIntent);
+                            } catch (ParseException e) {
+                                Log.e(TAG, e.getMessage(), e);
+                            }
+                        }
+                    }
+                }
+                return builder;
+            }
+        });
     }
 
     /**
