@@ -199,7 +199,7 @@ public class ApplicationClass extends Application implements ETLogListener, ETPu
 
                 String category = payload.getString("category");
                 if (!TextUtils.isEmpty(category )) {
-                    if ("Testing".equalsIgnoreCase("testing")) {
+                    if ("Testing".equalsIgnoreCase(category)) {
                         //we need to add the 3 item_spotlight buttons to the notification. Android allows
                         //a max of 3 action buttons on the BigStyle notifications.
                         Intent similarIntent = new Intent(context, MainActivity.class);
