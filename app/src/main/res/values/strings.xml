@@ -151,5 +151,6 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="action_info">Information</string>
+    <string name="in_btn_add_reminder">Add Reminder</string>
 
 </resources>

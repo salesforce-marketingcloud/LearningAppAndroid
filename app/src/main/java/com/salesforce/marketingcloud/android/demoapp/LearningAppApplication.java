@@ -9,14 +9,22 @@ package com.salesforce.marketingcloud.android.demoapp;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.app.PendingIntent;
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
 import com.exacttarget.etpushsdk.ETAnalytics;
 import com.exacttarget.etpushsdk.ETException;
 import com.exacttarget.etpushsdk.ETLogListener;
+import com.exacttarget.etpushsdk.ETNotificationBuilder;
+import com.exacttarget.etpushsdk.ETNotifications;
 import com.exacttarget.etpushsdk.ETPush;
 import com.exacttarget.etpushsdk.ETPushConfig;
 import com.exacttarget.etpushsdk.ETPushConfigureSdkListener;
@@ -34,11 +42,13 @@ import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.LinkedHashSet;
 import java.util.Locale;
+import java.util.TimeZone;
 
 import hugo.weaving.DebugLog;
 
@@ -210,6 +220,52 @@ public class LearningAppApplication extends Application implements ETLogListener
             }
             listeners.clear();
         }
+
+        /*
+            Send a push payload with "category" as a key and "sale" as a value to see how
+            Interactive Notifications work.  "sale_date" is also required as our Interactive
+            Notification will create a calendar reminder on the specified date.
+
+            {
+             "data" : {
+                "alert":"Join us for our once in a decade sale!",
+                "category":"sale",
+                "sale_date": "2020-12-31"
+                "event_title": "BIG SALE!"
+             }
+            }
+         */
+        ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
+            @Override
+            public NotificationCompat.Builder setupNotificationBuilder(Context context, Bundle payload) {
+                NotificationCompat.Builder builder = ETNotifications.setupNotificationBuilder(context, payload);
+
+                if (TextUtils.isEmpty(payload.getString("category")) || TextUtils.isEmpty(payload.getString("sale_date"))) {
+                    return builder;
+                }
+
+                if ("sale".equalsIgnoreCase(payload.getString("category"))) {
+                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    simpleDateFormat.setTimeZone(TimeZone.getDefault());
+                    try {
+                        Date saleDate = simpleDateFormat.parse(payload.getString("sale_date"));
+                        Intent intent = new Intent(Intent.ACTION_INSERT)
+                                .setData(CalendarContract.Events.CONTENT_URI)
+                                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, saleDate.getTime())
+                                .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, saleDate.getTime())
+                                .putExtra(CalendarContract.Events.TITLE, payload.getString("event_title"))
+                                .putExtra(CalendarContract.Events.DESCRIPTION, payload.getString("alert"))
+                                .putExtra(CalendarContract.Events.HAS_ALARM, 1)
+                                .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
+                        PendingIntent pendingIntent = PendingIntent.getActivity(context, R.id.interactive_notification_reminder, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                        builder.addAction(R.mipmap.app_logo, getString(R.string.in_btn_add_reminder), pendingIntent);
+                    } catch (ParseException e) {
+                        Log.e(TAG, e.getMessage(), e);
+                    }
+                }
+                return builder;
+            }
+        });
     }
 
     /**
