@@ -258,7 +258,7 @@ public class LearningAppApplication extends Application implements ETLogListener
                                 .putExtra(CalendarContract.Events.HAS_ALARM, 1)
                                 .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
                         PendingIntent pendingIntent = PendingIntent.getActivity(context, R.id.interactive_notification_reminder, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-                        builder.addAction(R.mipmap.app_logo, getString(R.string.in_btn_add_reminder), pendingIntent);
+                        builder.addAction(android.R.drawable.ic_menu_my_calendar, getString(R.string.in_btn_add_reminder), pendingIntent);
                     } catch (ParseException e) {
                         Log.e(TAG, e.getMessage(), e);
                     }

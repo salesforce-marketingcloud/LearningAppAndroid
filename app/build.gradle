@@ -41,7 +41,7 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.6.0.1079-SNAPSHOT@aar') {
+    compile('com.exacttarget.etpushsdk:etsdk:4.6.0-SNAPSHOT@aar') {
         transitive = true;
         changing = true
     }
