@@ -136,8 +136,8 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
             Log.e(TAG, e.getMessage());
         }
 
-        displayAttributes(attributes, etPush);
         displaySubscriberKey(subscriberKey, etPush);
+        displayAttributes(attributes, etPush);
         displayTags(tags, etPush);
 
         // Hide the progress dialog
@@ -163,9 +163,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
         }
 
         final Preference preference = findPreference(KEY_PREF_SUBSCRIBER_KEY);
-        if (!this.sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, "").isEmpty()) { // KEY_PREF_SUBSCRIBER_KEY must match the key of the EditTextPreference correspondent to the subscriber key.
-            preference.setSummary(this.sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
-        }
+        preference.setSummary(!TextUtils.isEmpty(subscriberKey) ? subscriberKey : sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
 
         preference.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
@@ -175,7 +173,8 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
 
                 final AlertDialog alertDialog = (AlertDialog) editTextPreference.getDialog();
                 final EditText editText = editTextPreference.getEditText();
-                editText.setText(sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
+
+                editText.setText(!TextUtils.isEmpty(subscriberKey) ? subscriberKey : sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
 
                 Button positiveButton = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
                 positiveButton.setOnClickListener(new View.OnClickListener() {
@@ -194,6 +193,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                                     SharedPreferences.Editor editor = sharedPreferences.edit();
                                     editor.putString(KEY_PREF_SUBSCRIBER_KEY, newSubscriberKey);
                                     editor.commit();
+                                    editTextPreference.setSummary(newSubscriberKey);
                                 } else {
                                     Utils.flashError(editText, getString(R.string.error_could_not_update));
                                     return;
@@ -221,13 +221,22 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
         }
         Log.i(TAG, String.format(Locale.ENGLISH, "ATTRIBUTES: %s", attributes));
         //saveAttributesToSharedPreferences(attributes);
+        String firstName = null;
+        String lastName = null;
+        for (Attribute attribute : attributes) {
+            if (attribute.getKey().equalsIgnoreCase("firstname")) {
+                firstName = attribute.getValue();
+            } else if (attribute.getKey().equalsIgnoreCase("lastname")) {
+                lastName = attribute.getValue();
+            }
+        }
         final PreferenceCategory preferenceCategory = (PreferenceCategory) this.preferenceScreen.findPreference("pref_attributes_section");
         // Firstname
         EditTextPreference editTextPreference = new EditTextPreference(getActivity());
-        editTextPreference.setDefaultValue("");
-        editTextPreference.setDialogMessage(getResources().getString(R.string.pref_new_attribute_summary));
+        editTextPreference.setDefaultValue(!TextUtils.isEmpty(firstName) ? firstName : "");
+        editTextPreference.setDialogMessage(getResources().getString(R.string.pref_attribute_firstname_summ));
         editTextPreference.setKey(KEY_PREF_FIRSTNAME_ATTRIBUTE);
-        editTextPreference.setSummary(getResources().getString(R.string.pref_new_attribute_summary));
+        editTextPreference.setSummary(!TextUtils.isEmpty(firstName) ? firstName : getResources().getString(R.string.pref_attribute_firstname_summ));
         editTextPreference.setTitle(getResources().getString(R.string.pref_attribute_firstname));
         preferenceCategory.addPreference(editTextPreference);
         final Preference firstnamePreference = findPreference(KEY_PREF_FIRSTNAME_ATTRIBUTE);
@@ -253,7 +262,8 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                         } else {
                             try {
                                 etPush.addAttribute("FirstName", value);
-                                // saveAttributesToSharedPreferences(attributes);
+                                editTextPreference.setSummary(value);
+                                sharedPreferences.edit().putString(KEY_PREF_FIRSTNAME_ATTRIBUTE, value).apply();
                             } catch (ETException e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
@@ -269,10 +279,10 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
 
         // Lastname
         editTextPreference = new EditTextPreference(getActivity());
-        editTextPreference.setDefaultValue("");
-        editTextPreference.setDialogMessage(getResources().getString(R.string.pref_new_attribute_summary));
+        editTextPreference.setDefaultValue(!TextUtils.isEmpty(lastName) ? lastName : "");
+        editTextPreference.setDialogMessage(getResources().getString(R.string.pref_attribute_lastname_summ));
         editTextPreference.setKey(KEY_PREF_LASTNAME_ATTRIBUTE);
-        editTextPreference.setSummary(getResources().getString(R.string.pref_new_attribute_summary));
+        editTextPreference.setSummary(!TextUtils.isEmpty(lastName) ? lastName : getResources().getString(R.string.pref_attribute_lastname_summ));
         editTextPreference.setTitle(getResources().getString(R.string.pref_attribute_lastname));
         preferenceCategory.addPreference(editTextPreference);
         final Preference lastnamePreference = findPreference(KEY_PREF_LASTNAME_ATTRIBUTE);
@@ -298,11 +308,11 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                         } else {
                             try {
                                 etPush.addAttribute("LastName", value);
-                                // saveAttributesToSharedPreferences(attributes);
+                                editTextPreference.setSummary(value);
+                                sharedPreferences.edit().putString(KEY_PREF_LASTNAME_ATTRIBUTE, value).apply();
                             } catch (ETException e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
-                            //configureAttributes(etPush);
                         }
                         alertDialog.dismiss();
                     }

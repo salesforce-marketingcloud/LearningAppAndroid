@@ -116,14 +116,6 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
         this.etPush = etPush;
         try {
             /*
-                Add attributes as required.  For this application we'll assume our user is John Doe as
-                the goal is to demonstrate the SDK's usage.
-             */
-            etPush.addAttribute("FirstName", "John");
-            etPush.addAttribute("LastName", "Doe");
-            etPush.setSubscriberKey("me@salesforce.com");
-
-            /*
                 A good practice is to add the application's version name as a tag that can later
                 be used to target push notifications to specific application versions.
              */

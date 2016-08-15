@@ -221,51 +221,51 @@ public class LearningAppApplication extends Application implements ETLogListener
             listeners.clear();
         }
 
-        /*
-            Send a push payload with "category" as a key and "sale" as a value to see how
-            Interactive Notifications work.  "sale_date" is also required as our Interactive
-            Notification will create a calendar reminder on the specified date.
+/*
+    Send a push payload with "category" as a key and "sale" as a value to see how
+    Interactive Notifications work.  "sale_date" is also required as our Interactive
+    Notification will create a calendar reminder on the specified date.
 
-            {
-             "data" : {
-                "alert":"Join us for our once in a decade sale!",
-                "category":"sale",
-                "sale_date": "2020-12-31"
-                "event_title": "BIG SALE!"
-             }
+    {
+     "data" : {
+        "alert":"Join us for our once in a decade sale!",
+        "category":"sale",
+        "sale_date": "2020-12-31"
+        "event_title": "BIG SALE!"
+     }
+    }
+ */
+ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
+    @Override
+    public NotificationCompat.Builder setupNotificationBuilder(Context context, Bundle payload) {
+        NotificationCompat.Builder builder = ETNotifications.setupNotificationBuilder(context, payload);
+
+        if (TextUtils.isEmpty(payload.getString("category")) || TextUtils.isEmpty(payload.getString("sale_date"))) {
+            return builder;
+        }
+
+        if ("sale".equalsIgnoreCase(payload.getString("category"))) {
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            simpleDateFormat.setTimeZone(TimeZone.getDefault());
+            try {
+                Date saleDate = simpleDateFormat.parse(payload.getString("sale_date"));
+                Intent intent = new Intent(Intent.ACTION_INSERT)
+                        .setData(CalendarContract.Events.CONTENT_URI)
+                        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, saleDate.getTime())
+                        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, saleDate.getTime())
+                        .putExtra(CalendarContract.Events.TITLE, payload.getString("event_title"))
+                        .putExtra(CalendarContract.Events.DESCRIPTION, payload.getString("alert"))
+                        .putExtra(CalendarContract.Events.HAS_ALARM, 1)
+                        .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, R.id.interactive_notification_reminder, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+                builder.addAction(android.R.drawable.ic_menu_my_calendar, getString(R.string.in_btn_add_reminder), pendingIntent);
+            } catch (ParseException e) {
+                Log.e(TAG, e.getMessage(), e);
             }
-         */
-        ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
-            @Override
-            public NotificationCompat.Builder setupNotificationBuilder(Context context, Bundle payload) {
-                NotificationCompat.Builder builder = ETNotifications.setupNotificationBuilder(context, payload);
-
-                if (TextUtils.isEmpty(payload.getString("category")) || TextUtils.isEmpty(payload.getString("sale_date"))) {
-                    return builder;
-                }
-
-                if ("sale".equalsIgnoreCase(payload.getString("category"))) {
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                    simpleDateFormat.setTimeZone(TimeZone.getDefault());
-                    try {
-                        Date saleDate = simpleDateFormat.parse(payload.getString("sale_date"));
-                        Intent intent = new Intent(Intent.ACTION_INSERT)
-                                .setData(CalendarContract.Events.CONTENT_URI)
-                                .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, saleDate.getTime())
-                                .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, saleDate.getTime())
-                                .putExtra(CalendarContract.Events.TITLE, payload.getString("event_title"))
-                                .putExtra(CalendarContract.Events.DESCRIPTION, payload.getString("alert"))
-                                .putExtra(CalendarContract.Events.HAS_ALARM, 1)
-                                .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
-                        PendingIntent pendingIntent = PendingIntent.getActivity(context, R.id.interactive_notification_reminder, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-                        builder.addAction(android.R.drawable.ic_menu_my_calendar, getString(R.string.in_btn_add_reminder), pendingIntent);
-                    } catch (ParseException e) {
-                        Log.e(TAG, e.getMessage(), e);
-                    }
-                }
-                return builder;
-            }
-        });
+        }
+        return builder;
+    }
+});
     }
 
     /**

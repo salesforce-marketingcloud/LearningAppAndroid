@@ -8,6 +8,8 @@ package com.salesforce.marketingcloud.android.demoapp.ui;
 
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.ListView;
 
 import com.salesforce.marketingcloud.android.demoapp.R;
 
@@ -27,6 +29,8 @@ import hugo.weaving.DebugLog;
 @DebugLog
 public class SettingsActivity extends AppCompatActivity {
 
+    private boolean mListStyled;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -38,5 +42,21 @@ public class SettingsActivity extends AppCompatActivity {
 
         getFragmentManager().beginTransaction().replace(android.R.id.content,
                 new SettingsFragment()).commit();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Just a hack to remove section dividers
+        if (!mListStyled) {
+            View rootView = findViewById(android.R.id.content);
+            if (rootView != null) {
+                ListView list = (ListView) rootView.findViewById(android.R.id.list);
+                list.setPadding(0, 0, 0, 0);
+                list.setDivider(null);
+                //any other styling call
+                mListStyled = true;
+            }
+        }
     }
 }
