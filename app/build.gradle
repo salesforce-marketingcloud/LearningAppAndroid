@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 apply plugin: 'com.android.application'
+apply plugin: 'com.jakewharton.hugo'
 
 android {
     /* Change these to fit your applications requirements! */
@@ -40,7 +41,7 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.6.0.1079-SNAPSHOT@aar') {
+    compile('com.exacttarget.etpushsdk:etsdk:4.6.0-SNAPSHOT@aar') {
         transitive = true;
         changing = true
     }
