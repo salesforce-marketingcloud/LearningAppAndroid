@@ -450,27 +450,30 @@ This feature is implemented in Settings Preferences.  We assume that the Subscri
 
 1. In your application’s app/build.gradle file add the following dependence (required for applications that will run on devices with Android OS < 5.0):
     
-    [view the code](/app/build.gradle#L46-L47)
+    [view the code](/app/build.gradle#L40-L44)
     ```gradle
-    /* 3rd Party Libraries Required for SDK integration */
-    compile 'com.radiusnetworks:AndroidIBeaconLibrary:0.7.6'
+    dependencies {
+        /* SDK */
+        compile('com.exacttarget.etpushsdk:etsdk:4.5.0@aar') {
+            transitive = true;
+    }
     ```
 2. In your AndroidManifest, add the *JB4A SDK Permissions for location and region monitoring*, and the ETLocation Receiver and Service required to receive the push notifications based on the location of the customer.
 
-    [view the code](/app/src/main/AndroidManifest.xml#L19)
+    [view the code](/app/src/main/AndroidManifest.xml#L19-L20)
     ```xml
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     ```
 3. In your ApplicationClass, set the `LOCATION_ENABLED` parameter to true:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L56)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L68)
     ```java
     public static final boolean LOCATION_ENABLED = true;
     ```
 4. In your ApplicationClass, set the `PROXIMITY_ENABLED` parameter to true:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L52)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L64)
     ```java
     public static final boolean PROXIMITY_ENABLED = true;
     ```
