@@ -39,7 +39,7 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.4.0@aar') {
+    compile('com.exacttarget.etpushsdk:etsdk:4.5.0@aar') {
             transitive = true;
     }
 
