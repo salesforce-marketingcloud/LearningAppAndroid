@@ -37,7 +37,7 @@
 
     4. [Tag Implementation](#0016)
 
-    5. [Beacon and Geofence Messages Implementation](#0017)
+    5. [Beacon and Geofence Message Implementation](#0017)
 
     6. [Implement Analytics in your Mobile App](#0018)
 
@@ -107,7 +107,7 @@ Tags let you implement contact segmentation. You can set tags for subscriptions 
 <a name="0006"></a>
 ## Beacon and Geofence Messages
 
-You can use the location capabilities of the *JB4A SDK* to target messages to a segmented group of contacts.  Send personalized messages to increase engagement.  The app pre-downloads geofence messages and triggers those messages when a mobile device crosses a geofence boundary.  To use this functionality:
+You can use the location capabilities of the *JB4A SDK* to target messages to a segmented group of contacts.  Send personalized messages to increase engagement.  The app pre-downloads geofence messages and triggers those messages when a mobile device crosses a geofence boundary. For beacon messages, the app triggers these messages when a mobile device comes into proximity with a known beacon. To use this functionality:
 
 1. The account must have access to both MobilePush and Location Services.
 
@@ -457,27 +457,10 @@ This feature is implemented in Settings Preferences.  We assume that the Subscri
     ```
 2. In your AndroidManifest, add the *JB4A SDK Permissions for location and region monitoring*, and the ETLocation Receiver and Service required to receive the push notifications based on the location of the customer.
 
-    [view the code](/app/src/main/AndroidManifest.xml#L24)
+    [view the code](/app/src/main/AndroidManifest.xml#L19)
     ```xml
-    <!-- JB4A SDK Permissions for location and region monitoring -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <!-- END JB4A SDK location and region monitoring Permissions -->
-    …
-
-    <!-- ETLocationReceiver and Service -->
-    <receiver android:name="com.exacttarget.etpushsdk.ETLocationReceiver" >
-        <intent-filter>
-            <action android:name="android.location.PROVIDERS_CHANGED" />
-            <category android:name="android.intent.category.DEFAULT" />
-        </intent-filter>
-    </receiver>
-
-    <service
-        android:name="com.exacttarget.etpushsdk.ETLocationService"
-        android:enabled="true" />
-    <!-- END ETLocationReceiver and Service -->
     ```
 3. In your ApplicationClass, set the `LOCATION_ENABLED` parameter to true:
 
