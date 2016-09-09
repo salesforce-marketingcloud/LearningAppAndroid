@@ -2,7 +2,7 @@
 
 # README
 
->Marketing Cloud Learning Apps are free to use, but are not official Salesforce.com Marketing Cloud products, and should be considered community projects - these apps are not officially tested or documented. For help on any Marketing Cloud Learning App please consult the Salesforce message boards or the issues section of this repository - Salesforce.com Marketing Cloud support is not available for these applications.
+>Marketing Cloud Learning Apps are free to use but are not official Salesforce.com Marketing Cloud products and should be considered community projects--these apps are not officially tested or documented. For help on any Marketing Cloud Learning App please consult the Salesforce message boards or the issues section of this repository. Salesforce Marketing Cloud support is not available for these applications.
 
 1. [About](#0001)
 
@@ -10,7 +10,7 @@
 
     2. [Push Notifications](#0003)
 
-    3. [Subscriber key](#0004)
+    3. [Subscriber Key](#0004)
 
     4. [Tags](#0005)
 
@@ -20,7 +20,7 @@
 
 2. [Implementation on Android](#0007)
 
-    1. [Pre-requisite steps](#0008)
+    1. [Prerequisite Steps](#0008)
 
         1. [Provision Apps with Google](#0009)
 
@@ -31,32 +31,22 @@
             2. [Integrate App Center app](#0012)
     2. [Setting up the SDK](#0013)
 
-    2. [Implementing the SDK Push Notifications](#0014)
+    3. [Implementing the SDK Push Notifications](#0014)
 
-    3. [Subscriber Key Implementation](#0015)
+    4. [Subscriber Key Implementation](#0015)
 
-    4. [Tag Implementation](#0016)
+    5. [Tag Implementation](#0016)
 
-    5. [Beacon and Geofence Message Implementation](#0017)
+    6. [Beacon and Geofence Message Implementation](#0017)
 
-    6. [Implement Analytics in your Mobile App](#0018)
+    7. [Implement Analytics in your Mobile App](#0018)
 
 <a name="0001"></a>
 # About
 
 This project provides a template for creating a mobile app (Android or iOS) that uses the Journey Builder for Apps SDK.  It is also a UI for exploring its features and provides a mechanism to collect and send debugging information to learn about the workings of the SDK as you explore.
 
-The code in this repository includes all of the code used to run the fully functional APK including an App ID and Access Token to let you test and debug the application. These keys will trigger an hourly automated push message of a timestamp, indicating that the application is properly setup. To create a new app the following keys must be set with your own values within the corresponding file.
-
-**secrets.xml**
-
-1. `app_id`: the App ID for your development app as defined in the App Center section of the Marketing Cloud.
-
-2. `gcm_sender_id`: the Google Cloud Messaging ID as defined in the Google Cloud Developers Console for your app.
-
-3. `access_token`: the Access Token for your development app as defined in the App Center section of the Marketing Cloud.
-
-NB: You can use different keys for the staging/testing phase and the production phase.  Staging/testing keys are indicated by the prefix `staging_`.
+The code in this repository includes all of the code used to run the fully functional APK, including an App ID and Access Token to let you test and debug the application. To create a new app, the following keys must be set with your own values within the corresponding file.
 
 <a name="0002"></a>
 ## Marketing Cloud App Center
@@ -69,67 +59,87 @@ Each app in App Center represents an application connected to the Marketing Clou
 
 * *API Integration* allows you to leverage the Marketing Cloud APIs. Create an API Integration app when you want to use Fuel APIs to automate tasks or integrate business systems. API Integration apps utilize an OAuth2 client credentials flow to acquire access tokens directly from the Fuel authentication service.
 
-* *Marketing Cloud apps* represent apps that live within the Salesforce Marketing Cloud and launch via the Marketing Cloud app menu. Marketing Cloud apps include custom apps built by your organization or apps installed from the Salesforce Marketing Cloud HubExchange. Marketing Cloud apps utilize a JSON Web Token (JWT) to acquire access tokens on behalf of logged in users.
+* *Marketing Cloud apps* represent apps that live within the Salesforce Marketing Cloud and launch via the Marketing Cloud app menu. Marketing Cloud apps include custom apps built by your organization or apps installed from the Salesforce Marketing Cloud HubExchange. Marketing Cloud apps utilize a JSON Web Token (JWT) to acquire access tokens on behalf of logged-in users.
 
 * *Application Extensions* allow you to extend the Marketing Cloud with custom Journey Builder activities, Cloud Editor Blocks, and Automation Studio activities.
 
-* *MobilePush apps* represent apps built for the iOS, Android, or Blackberry mobile platforms that use MobilePush to communicate with their users via push messages. The Salesforce Marketing Cloud classifies MobilePush apps as consumer-grade applications and utilize long-lived limited access tokens.
+* *MobilePush apps* represent apps built for the iOS, Android, or Blackberry mobile platforms that use MobilePush to communicate with their users via push messages. The Salesforce Marketing Cloud classifies MobilePush apps as consumer-grade applications and utilize long-lived limited-access tokens.
 
 If you haven’t already, you should [create an App Center account](https://appcenter-auth.exacttargetapps.com/create).
 
 If you have an App Center account, you can [log in to that account](https://appcenter-auth.exacttargetapps.com/redirect).
+
+###Place the App Center Credentials in your Application
+On Android, we utilize a 'secrets.xml' file to contain the application credntials given by the App Center above. Inside the secrets.cml file, set the following:
+
+**secrets.xml**
+
+1. `app_id`: the App ID for your development app as defined in the App Center section of the Marketing Cloud.
+
+2. `gcm_sender_id`: the Google Cloud Messaging ID as defined in the Google Cloud Developers Console for your app.
+
+3. `access_token`: the Access Token for your development app as defined in the App Center section of the Marketing Cloud.
+
+> Note: You can use different keys for the staging/testing phase and the production phase.  Staging/testing keys are indicated by the prefix `staging_`. By default, the Learning App will utilize the `staging_ app_id`, `access_token`, and `gcm_sender_id`.
+
+#Features
+
 <a name="0003"></a>
 ## Push Notifications
 
-MobilePush lets you create and send targeted push messages based on cross-channel consumer data to encourage app usage and deliver increased ROI.  With MobilePush, you view how users navigate through your app and because MobilePush is built on the Salesforce Marketing Cloud, you can easily integrate push message campaigns with any email, SMS, or social campaigns.
+MobilePush lets you create and send targeted push messages based on cross-channel consumer data to encourage app usage and deliver increased ROI.  With MobilePush, you view how users navigate through your app. Because MobilePush is built on the Salesforce Marketing Cloud, you can easily integrate push message campaigns with any email, SMS, or social campaign.
+
 <a name="0004"></a>
-## Subscriber key
+## Subscriber Key
 
 A subscriber is a person who has opted to receive communications from your organization. 
 
-A valid email address is required to receive emails and a phone number to receive SMS messages.  Additional information about subscribers can be tracked using profile and preference attributes.
+A valid email address is required to receive emails, and a valid phone number is required to receive SMS messages. You can track additional information about subscribers using profile and preference attributes.
 
-The Subscriber Key serves to identify your subscribers.
+The Subscriber Key identifies your subscribers.
 
-It can be set to a specific value provided by the subscriber such as a phone number, email address, or other appropriate value but most importantly a value that you choose.
+It can be set to a specific value provided by the subscriber, such as a phone number, email address, or other appropriate value. It must be a value that you choose that identifies a unique person. The model is that one subscriber may have multiple devices. For example, Kevin has 3 devices. The subscriber key identifies Kevin, not his 3 devices. 
 
-For example, using a subscriber key to identify a subscriber with a value other than the email address would allow you to:
+Keep in mind that the Marketing Cloud web UI uses a send-by-subscriber model. This means:
 
-* Maintain multiple sets of subscriber attributes for a single email address. For example, if a family shares an email address, you can use a subscriber key to uniquely identify each member of the family.
+* The subscriber key is used to identify the devices that will be sent to. This means if you create a filtered list based on an attribute, it will identify the subscribers who own the devices that have the selected attributes and send to all devices owned by that contact. 
+* The subscriber key is not required, but it is strongly recommended. 
 
-* Include a single email address multiple times on a list. For example, if a message interaction sends a separate message for each car a subscriber owns, it may be appropriate for a single subscriber to receive multiple messages.
+The Salesforce Marketing Cloud interface, as well as the Fuel REST API, support functionality for subscribers identified with a subscriber key.
 
-The Salesforce Marketing Cloud interface as well as the Web Service SOAP API support functionality around subscribers identified with a subscriber key.
 <a name="0005"></a>
 ## Tags
 
-Tags let you implement contact segmentation. You can set tags for subscriptions as defined by user choice.  Additionally, use tags to collect information from the mobile app and for unstructured data or data that can contain many potential unknown values. For example, you can use tags when the number of potential attribute names exceeds the number of potential values of an individual attribute (such as the favorite brand specified by a contact).
+Tags let you implement contact segmentation on a per-device level. Additionally, use tags to collect information from the mobile app for unstructured data or data that can contain many potential unknown values. For example, you can use tags when the number of potential attribute names exceeds the number of potential values of an individual attribute, such as the favorite brand specified by a contact. Note that tags are device specific, but one-way. Each device has its own set of tags, but a new device will not pull down tags from the Marketing Cloud. If you create a filtered list based on tag data, be aware that sending from the UI will result in sending to all devices owned by subscribers that have any device with that tag.
+
 <a name="0006"></a>
 ## Beacon and Geofence Messages
 
-You can use the location capabilities of the *JB4A SDK* to target messages to a segmented group of contacts.  Send personalized messages to increase engagement.  The app pre-downloads geofence messages and triggers those messages when a mobile device crosses a geofence boundary. For beacon messages, the app triggers these messages when a mobile device comes into proximity with a known beacon. To use this functionality:
+You can use the location capabilities of the *JB4A SDK* to target messages to contacts in selected geographic locations. The SDK pre-downloads geofence messages and triggers those messages when a mobile device crosses a geofence boundary. Note that the message must pre-exist on the device before the device crosses the geofence or encounters a beacon. These messages are downloaded whenever:
+
+* The application is brought to the foreground / started.
+* The device moves across the "magic" geofence. The "magic" fence is a geofence with a radius of 5K, and a center point  set to the last-known GPS fix. If the device moves outside that magic fence, the OS will notify the SDK, and the SDK will search for new geofences and beacons to monitor, along with messages for those fences and beacons.
+
+For beacon messages, the app triggers these messages when a mobile device comes into proximity with a known beacon. To use this functionality:
 
 1. The account must have access to both MobilePush and Location Services.
-
 2. Ensure that you use version 7.8.0 or earlier of Google Play Services to enable geolocation for your app.
-
 3. You must receive user permission to implement location services.
 
 <a name="0006b"></a>
 ## Analytics
 
-Mobile Application Analytics enables marketers to gather mobile app actions and behaviors from users and provides powerful visualizations of the data. The data helps you make informative decisions about how to structure your customer journeys, design your client facing experiences and tailor your digital marketing campaigns. The collected data is also available inside the Salesforce Marketing Cloud – ready to be used to segment messaging lists, provide highly personalized messaging content and drive 1:1  Custom Journeys.
-
-After enabling the analytics feature in your app, visit the Web & Mobile Analytics application within the Marketing Cloud.
+Mobile Application Analytics enables marketers to gather mobile app actions and behaviors from users and provides powerful visualizations of the data. The data helps you make informative decisions about how to structure your customer journeys, design your client-facing experiences, and tailor your digital marketing campaigns. The collected data is also available inside the Salesforce Marketing Cloud, ready to be used to segment messaging lists, provide highly personalized messaging content, and drive 1:1 Custom Journeys.
 
 <a name="0007"></a>
 # Implementation on Android
 <a name="0008"></a>
-## Previous steps
+## Prerequisite Steps
 
-1. Provision Apps with Google  
+Before you can implement the SDK inside your Android application, you must first:
 
-2. Create your apps in the App Center
+1. Provision Apps with Google.  
+2. Create your apps in the App Center.
 
 <a name="0009"></a>
 ### Provision Apps with Google
@@ -141,27 +151,23 @@ Review the Android documentation regarding the integration of your Android mobil
 1. Log into the [Google Developers Console](https://console.developers.google.com/) and click **Create a project...**.
 
     1. Enter a name for your project in the **PROJECT NAME** field.
-
     2. Use the suggested default ID for your project or click in **Edit** to enter a custom one.
-
     3. Click Create.
 
 2. Record the Project Number value supplied by the Google Cloud Console. You will use this value later in your Android application code as the **Google Cloud Messaging Sender ID**.
 
     ![image alt text](imgReadMe/image_00.png)
 
-3. In the the left menu click on **APIs** (**APIs & auth** section).
-
+3. In the the left menu, click **APIs** (**APIs & auth** section).
 4. Enable **Google Cloud Messaging for Android** by clicking Google Cloud Messaging For Android:
 
     ![image alt text](imgReadMe/image_01.png)
 
-5. Click the button that says "Enable API".
+5. Click "Enable API".
 
     ![image alt text](imgReadMe/image_02.png)
 
 6. Click **Credentials** in the left menu.
-
 7. Click **Add credentials** → **API key**, and select **Server key** in the dialog.
 
     ![image alt text](imgReadMe/image_03.png)
@@ -169,9 +175,9 @@ Review the Android documentation regarding the integration of your Android mobil
     ![image alt text](imgReadMe/image_04.png)
 
 
-13. Click **Create** and copy the **API KEY** value from the **Server application**.
+8. Click **Create** and copy the **API KEY** value from the **Server application**.
 
-14. Use the API Key from the server application created above to add to your MobilePush app in the *Create your apps in the App Center* step. And use the project number to set the `gcm_sender_id` in your project.
+9. Use the API Key from the server application created above to add to your MobilePush app in the *Create your apps in the App Center* step. And use the project number to set the `gcm_sender_id` in your project.
 
 <a name="0010"></a>
 ### Create your apps in the App Center
@@ -179,9 +185,7 @@ Review the Android documentation regarding the integration of your Android mobil
 In order to connect your app to your Marketing Cloud account, you must follow these steps:
 
 1. Add app to App Center.
-
 2. Integrate the App Center app to your Marketing Cloud account.
-
 3. Add the Provisioning info created in the GCM Console to the app in the App Center.
 
 <a name="0011"></a>
@@ -207,14 +211,14 @@ To create a new MobilePush app:
 
       2. The **Package** has no correlation to anything outside of the MarketingCloud ecosystem and can be **any** unique identifier for your application.
 
-      3. The **Description** & **MobilePush Icon** fields are optional but will help you identify your application within your Marketing Cloud account. 
+      3. The **Description** and **MobilePush Icon** fields are optional but will help you identify your application within your Marketing Cloud account. 
 
 4. Click **Next** in order to integrate this new app with your Marketing Cloud account.
 
 <a name="0012"></a>
 #### Integrate App Center app
 
-The MobilePush app created in the App Center must be connected to a specific Marketing Cloud account. You must have a login for your Marketing Cloud account in order to connect this MobilePush app to the correct Marketing Cloud account.
+The MobilePush app created in the App Center must be connected to a specific Marketing Cloud account. You must have login credentials for your Marketing Cloud account in order to connect this MobilePush app to the correct Marketing Cloud account.
 
 Follow these steps in order to connect this MobilePush app to the correct Marketing Cloud account:
 
@@ -234,40 +238,40 @@ Follow these steps in order to connect this MobilePush app to the correct Market
 
 5. Click **Integrate**.
 
-6. In the GCM Client section, enter the server API KEY previously created in the [Provision Apps with Google](#0009) step (you can get this key by entering in the [Google Cloud Console](https://console.developers.google.com/)).
+6. In the GCM Client section, enter the server API KEY previously created in the [Provision Apps with Google](#0009) step. You can get this key by entering in the [Google Cloud Console](https://console.developers.google.com/).
 
     ![image alt text](imgReadMe/image_14.png)
 
 7. When you have all the fields required for your application’s platform(s) populated, click *Next*.
 
-8. Review the information you provided and check for any potential errors and click **Finish**.
+8. Review the information you provided, check for any errors, and click **Finish**.
 
     You should be presented with a *Success!* message and an application details screen. Any of the areas can be edited by clicking the edit icon associated with the **Summary** or **Application Provisioning** sections.
 
     ![image alt text](imgReadMe/image_15.png)
 
-Record the **Application ID** and the **Access Token** as they will be used later in the secrets.xml file.
+Record the **Application ID** and the **Access Token**, as they will be used later in the secrets.xml file.
 
 
 <a name="0013"></a>
 ## Setting up the SDK
 
-The `readyAimFire` method of the ETPush class configures the SDK to point to the correct code application.
+The `configureSDK` method of the ETPush class configures the SDK to point to the correct code application.
 
-Call this from your Application's Application.onCreate() method. This initializes ETPush.
+Call this from your Application's `Application.onCreate()` method. This initializes ETPush.
 
-When ReadyAimFire() is called for the first time for a device, it will get a device token
+When `configureSDK()` is called for the first time for a device, it will get a device token
 from Google and send to the MarketingCloud.
 
-In ETPush.readyAimFire() you must set several parameters:
+In `configureSDK()` you must set several parameters:
 
-  * `app_id` and `access_token`: these values are taken from the Marketing Cloud definition for your app.
+  * `app_id` and `access_token`: These values are taken from the Marketing Cloud definition for your app.
 
-  * `gcm_sender_id` for the push notifications: this value is taken from the Google API console.
+  * `gcm_sender_id` for the push notifications: This value is taken from the Google API console.
 
-  * You can also set whether you enable location services, cloud pages, analytics, Web and Mobile Analytics and Proximity.
+  * You can also set whether you enable location services, cloud pages, analytics, Web and Mobile Analytics, and proximity (beacons).
 
-To set the logging level, call ETPush.setLogLevel().
+To set the logging level, call `ETPush.setLogLevel()`.
 
 <a name="0014"></a>
 ## Push Notifications
@@ -310,7 +314,7 @@ The SDK can now be configured with the App ID and Access Token, as explained in 
 **build.gradle**
 
 Add the following repository:
-[view the code](/build.gradle#L23-L31)
+[view the code](/build.gradle#L27-L27)
 
 ```gradle
 allprojects {
@@ -326,40 +330,54 @@ allprojects {
 **app/build.gradle**
 
 Include the following dependencies in your application's app/build.gradle file:
-[view the code](/app/build.gradle#L44-L59)
+[view the code](/app/build.gradle#L44-L44)
 
 ```gradle
 dependencies {
     /* SDK */
-    compile 'com.exacttarget.etpushsdk:etsdk:4.3.0@aar'
-
-    /* Google's Support v4 for Notification compatibility */
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:support-v4:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-
-    /* Google Play Services for Location and Google Cloud Messaging */
-    compile 'com.google.android.gms:play-services-location:8.1.0'
-    compile 'com.google.android.gms:play-services-gcm:8.1.0'
-
-    /* 3rd Party Libraries Required for SDK integration */
-    compile 'org.altbeacon:android-beacon-library:2.5.1@aar'
+    compile('com.exacttarget.etpushsdk:etsdk:4.5.0@aar') {
+            transitive = true;
+    }
 }
 ```
 
 **ApplicationClass.java**
 
-The boolean parameters `ANALYTICS_ENABLED`, `CLOUD_PAGES_ENABLED`, `WAMA_ENABLED`, `LOCATION_ENABLED` and `PROXIMITY_ENABLED` enable certain functionalities of the SDK, however, they are not required for the push notifications themselves to function which will still be sent even if all are set to false.
+The boolean parameters `ANALYTICS_ENABLED`, `CLOUD_PAGES_ENABLED`, `WAMA_ENABLED`, `LOCATION_ENABLED` and `PROXIMITY_ENABLED` enable certain functionalities of the SDK; however, they are not required for the push notifications themselves to function. Push notifications will still be sent even if all are set to false.
+
+We provide a "builder" object, to be used when configuring the SDK. 
+
+```java
+ETPush.configureSdk(new ETPushConfig.Builder(this)
+                .setEtAppId(getString(R.string.app_id))
+                .setAccessToken(getString(R.string.access_token))
+                .setGcmSenderId(getString(R.string.gcm_sender_id))
+                .setLogLevel(BuildConfig.DEBUG ? Log.VERBOSE : Log.ERROR)
+                .setAnalyticsEnabled(ANALYTICS_ENABLED)
+                .setLocationEnabled(LOCATION_ENABLED)
+                .setPiAnalyticsEnabled(WAMA_ENABLED)
+                .setCloudPagesEnabled(CLOUD_PAGES_ENABLED)
+                .setProximityEnabled(PROXIMITY_ENABLED)
+                .build()
+        , this // Our ETPushConfigureSdkListener
+);
+```
+
+Each of the SDK features can be enabled or disabled by passing a boolean value to their respective set* methods. For example, using `.setAnalyticsEnabled(False)` would disable the analytics portion of the SDK.
+
+Note: The configureSDK call *must* be made within the Application Class's `onCreate()` method.
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java)
+
 
 <a name="0014"></a>
 ## Subscriber Key Implementation
 
-1. Create a new activity called `SettingsActivity` that extends `PreferenceActivity` in your project.
+1. Create a new activity called `SettingsActivity` that extends `AppCompatActivity` in your project.
 
 2. Create a new fragment called `SettingsFragment` that extends `PreferenceFragment`.
 
-3. Now create an instance of the SettingsFragment in the SettingsActivity class, add the following code to the `onCreate()` method:
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsActivity.java#L37-L38)
+3. Create an instance of the `SettingsFragment` in the `SettingsActivity` class, and add the following code to the `onCreate()` method:
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsActivity.java)
     
     ```java
     getFragmentManager().beginTransaction().replace(android.R.id.content, new SettingsFragment()).commit();
@@ -370,7 +388,7 @@ The boolean parameters `ANALYTICS_ENABLED`, `CLOUD_PAGES_ENABLED`, `WAMA_ENABLED
 
 6. Add a private attribute SharedPreferences sp and set it as the default shared preference:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L50)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java)
     ```java
     private SharedPreferences sp;
     …
@@ -379,13 +397,13 @@ The boolean parameters `ANALYTICS_ENABLED`, `CLOUD_PAGES_ENABLED`, `WAMA_ENABLED
 
 7. Add a private attribute pusher, the instance of ETPush:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L54)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java)
     ```java
     private ETPush pusher;
     …
     this.pusher = ETPush.getInstance();
     ```
-8. Now create the reference to the EditTextPreference from preferences.xml and set the value stored in settings Preferences. Add an `OnPreferenceClickListener()` to open a Dialog with input for the user to enter their Subscriber Key.  This value is stored in the settings Preferences and will be passed to the pusher.
+8. Now create the reference to the EditTextPreference from preferences.xml and set the value stored in Settings Preferences. Add an `OnPreferenceClickListener()` to open a dialog with input for the user to enter their subscriber key.  This value is stored in the Settings Preferences and will be passed to the pusher.
 
     [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L94-L104)
     ```java
@@ -396,54 +414,52 @@ The boolean parameters `ANALYTICS_ENABLED`, `CLOUD_PAGES_ENABLED`, `WAMA_ENABLED
     pusher.setSubscriberKey(newSubscriberKey);
     ```
 
-It will take up to 15 minutes for the new value to be recorded in the Contact Record. If an internet connection is not available when the update is made, the SDK will save the update and send it whenever the network becomes available.
-
-By default, if your app does not set the Subscriber Key using `setSubscriberKey()`, the registration sent will be matched with a Contact Record that matches the System Token included in the registration payload. If no match is found, then a new Subscriber Key will be set in the Marketing Cloud and will not be sent back to the SDK.
+It can take up to 15 minutes for the new value to be recorded in the Contact Record. If an internet connection is not available when the update is made, the SDK will save the update and send it whenever the network becomes available.
 
 <a name="0016"></a>
 ## Tag Implementation
 
-This feature is implemented in Settings Preferences.  We assume that the Subscriber Key feature has been implemented as described in this guide in order for the following steps to work.
+This feature is implemented in Settings Preferences.  The subscriber key feature must be implemented as described in this guide in order for the following steps to work.
 
-1. Add a Set of tags as a private attribute.
+1. Add a set of tags as a private attribute.
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L37)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L65)
     ```java
     private Set<String> allTags;
     ```
 
-2. For the implementation of this feature, an instance of PreferenceScreen is needed to display the tags dynamically on the screen.
+2. For the implementation of this feature, an instance of `PreferenceScreen` is needed to display the tags dynamically on the screen.
    
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L40)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L68)
     ```java
     private PreferenceScreen prefScreen;
     ```
 
-3. In the onCreate() method set the values for prefScreen.
+3. In the `onCreate()` method, set the values for `prefScreen`.
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L53)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L81)
     ```java
     this.prefScreen = getPreferenceScreen();
     ```
 
-4. To display the tags on screen, call these methods inside the onCreate() method:
+4. To display the tags on screen, call these methods inside the `onCreate()` method:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L59-L60)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L83-L92)
     ```java
     this.allTags = this.pusher.getTags() != null ? this.pusher.getTags() : new HashSet<String>();
     storeAllTags(this.allTags);
     ````
 
-    The `storeAllTags(Set<String> tags)` method saves the tags in Preferences and populates the allTags attribute with all of the stored tags.
+    The `storeAllTags(Set<String> tags)` method saves the tags in Preferences and populates the `allTags` attribute with all of the stored tags.
 
-5. To display the tags on screen, call these methods inside the onCreate() method:
+5. To display the tags on screen, call these methods inside the `onCreate()` method:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L115)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/SettingsFragment.java#L145)
     ```java
     configureTags();
     ````
 
-    The `configureTags()` method renders the tags section, a clickable EditTextPreference to add a new tag and the tags from allTags with checkboxes to enable/disable the tag.
+    The `configureTags()` method renders the tags section, a clickable `EditTextPreference` to add a new tag and the tags from allTags with checkboxes to enable/disable the tag.
 
 <a name="0017"></a>
 ## Beacon and Geofence Messages Implementation
@@ -460,20 +476,20 @@ This feature is implemented in Settings Preferences.  We assume that the Subscri
     ```
 2. In your AndroidManifest, add the *JB4A SDK Permissions for location and region monitoring*, and the ETLocation Receiver and Service required to receive the push notifications based on the location of the customer.
 
-    [view the code](/app/src/main/AndroidManifest.xml#L19-L20)
+    [view the code](/app/src/main/AndroidManifest.xml)
     ```xml
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     ```
 3. In your ApplicationClass, set the `LOCATION_ENABLED` parameter to true:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L68)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java)
     ```java
     public static final boolean LOCATION_ENABLED = true;
     ```
 4. In your ApplicationClass, set the `PROXIMITY_ENABLED` parameter to true:
 
-    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L64)
+    [view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java)
     ```java
     public static final boolean PROXIMITY_ENABLED = true;
     ```
@@ -486,44 +502,9 @@ This feature is implemented in Settings Preferences.  We assume that the Subscri
 
 In your ApplicationClass, set the `ANALYTICS_ENABLED` parameter to true:
 
-[view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java#L56)
+[view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/ApplicationClass.java)
 ```java
 public static final boolean ANALYTICS_ENABLED = true;
 ```
-
-**BaseActivity.java**
-
-Your app sends analytics whenever it goes into the background.  Override onPause() and onResume() in each Activity class to notify the SDK when activities pause and resume so the SDK can determine when your app goes into the background.
-
-[view the code](/app/src/main/java/com/salesforce/marketingcloud/android/demoapp/BaseActivity.java#L15-L52)
-```java
-@Override
-protected void onPause() {
-   super.onPause();
-   try {
-       // Let JB4A SDK know when each activity paused
-       ETPush.activityPaused(this);
-   } catch (Exception e) {
-       if (ETPush.getLogLevel() <= Log.ERROR) {
-           Log.e(TAG, e.getMessage(), e);
-       }
-   }
-}
-
-@Override
-protected void onResume() {
-   super.onResume();
-   try {
-       // Let JB4A SDK know when each activity is resumed
-       ETPush.activityResumed(this);
-   } catch (Exception e) {
-       if (ETPush.getLogLevel() <= Log.ERROR) {
-           Log.e(TAG, e.getMessage(), e);
-       }
-   }
-}
-```
-
-To see your new Web and Mobile Analytics, open the Web and Mobile Analytics app within the Marketing Cloud and agree to the Terms and Conditions to get started.
 
 ![image alt text](imgReadMe/image_30.png)
