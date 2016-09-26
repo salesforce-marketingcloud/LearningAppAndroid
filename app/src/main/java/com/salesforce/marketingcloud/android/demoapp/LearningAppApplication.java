@@ -83,7 +83,7 @@ public class LearningAppApplication extends Application implements ETLogListener
     /**
      * Set to true to show how beacons messages works within the SDK.
      */
-    public static final boolean PROXIMITY_ENABLED = true;
+    public static final boolean PROXIMITY_ENABLED = false;
     /**
      * Set to true to show how geo fencing works within the SDK.
      */

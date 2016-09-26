@@ -135,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
                             try {
                                 ETLocationManager etLocationManager = ETLocationManager.getInstance();
                                 etLocationManager.startWatchingLocation();
-                                etLocationManager.startWatchingProximity(ETLocationManager.BEACON_LOGGING_VERBOSE);
+                                //etLocationManager.startWatchingProximity(ETLocationManager.BEACON_LOGGING_VERBOSE);
                             } catch (ETException e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
