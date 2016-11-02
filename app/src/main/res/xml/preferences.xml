@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-     <PreferenceCategory
+    <PreferenceCategory
         android:key="pref_personal_info_settings"
-        android:title="@string/pref_personal_info_title">
+        android:title="@string/pref_subscriber_key">
 
-         <!-- Subscriber key -->
+        <!-- Subscriber key -->
         <Preference
             android:key="prefSubscriberKeyHelp"
             android:selectable="false"
             android:summary="@string/subscriber_key_help"
-            android:title="About Subscriber Key" />
+            android:title="@string/pref_title_about_subscriberkey" />
 
         <EditTextPreference
-            android:defaultValue=""
             android:dialogMessage="@string/pref_subscriber_key_summ"
             android:inputType="textEmailAddress"
             android:key="pref_subscriber_key"
@@ -20,9 +19,40 @@
             android:summary="@string/pref_subscriber_key_summ"
             android:title="@string/pref_subscriber_key" />
 
-         <!-- End Subscriber key -->
+        <!-- End Subscriber key -->
+    </PreferenceCategory>
+
+    <Preference
+        android:layout="@layout/preference_divider"
+        android:selectable="false"
+        android:title="divider" />
+
+    <PreferenceCategory
+        android:key="pref_attributes_section"
+        android:title="@string/pref_attribute_category_title">
+
+        <Preference
+            android:key="prefAttributesHelp"
+            android:selectable="false"
+            android:summary="@string/pref_attributes_about"
+            android:title="@string/pref_title_about_attributes" />
 
     </PreferenceCategory>
 
+    <Preference
+        android:layout="@layout/preference_divider"
+        android:selectable="false"
+        android:title="divider" />
+
+    <PreferenceCategory
+        android:key="pref_tag_section"
+        android:title="@string/pref_tag_category_title">
+
+        <Preference
+            android:key="prefTagsHelp"
+            android:selectable="false"
+            android:summary="@string/pref_tag_about"
+            android:title="@string/pref_title_about_tags" />
+    </PreferenceCategory>
 
 </PreferenceScreen>

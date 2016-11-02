@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root  or https://opensource.org/licenses/BSD-3-Clause
  */
 apply plugin: 'com.android.application'
+apply plugin: 'com.jakewharton.hugo'
 
 android {
     /* Change these to fit your applications requirements! */
@@ -14,7 +15,8 @@ android {
 
     defaultConfig {
         applicationId "com.salesforce.marketingcloud.android.demoapp"
-        minSdkVersion 16 // MIN SDK for use with ETPush is 15, but this app uses 16 for maps compatibility
+        minSdkVersion 16
+        // MIN SDK for use with ETPush is 15, but this app uses 16 for maps compatibility
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -39,9 +41,13 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.5.0@aar') {
-            transitive = true;
+    compile('com.exacttarget.etpushsdk:etsdk:4.7.1@aar') {
+        //exclude module: 'android-beacon-library'
+        transitive = true;
+        changing = true
     }
+
+    compile 'com.google.android.gms:play-services-maps:9.2.0'
 
     // This particular app, requires appCompat and design
     compile 'com.android.support:appcompat-v7:23.1.1'
