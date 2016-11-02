@@ -41,8 +41,8 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.7.0@aar') {
-        exclude module: 'android-beacon-library'
+    compile('com.exacttarget.etpushsdk:etsdk:4.7.1@aar') {
+        //exclude module: 'android-beacon-library'
         transitive = true;
         changing = true
     }
