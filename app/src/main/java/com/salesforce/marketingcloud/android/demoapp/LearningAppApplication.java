@@ -169,6 +169,7 @@ public class LearningAppApplication extends Application implements ETLogListener
                             .setCloudPagesEnabled(CLOUD_PAGES_ENABLED)
                             .setProximityEnabled(PROXIMITY_ENABLED)
                             .setNotificationResourceId(R.drawable.ic_stat_app_logo_transparent)
+                            .setOpenDirectRecipientClass(OpenDirectActivity.class)
                             .build()
                     , this // Our ETPushConfigureSdkListener
             );

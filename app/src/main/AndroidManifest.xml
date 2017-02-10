@@ -18,6 +18,7 @@
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <!-- ##### End 2016-02 Release functional Application node -->
     <!-- ##### Begin 2016-02 Release functional Application node -->
     <application
@@ -94,6 +95,7 @@
         <activity
             android:name=".ui.InfoActivity"
             android:label="@string/title_activity_info" />
+        <activity android:name=".ui.OpenDirectActivity"></activity>
     </application>
 
 </manifest>
