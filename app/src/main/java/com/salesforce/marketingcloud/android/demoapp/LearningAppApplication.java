@@ -7,47 +7,42 @@
 package com.salesforce.marketingcloud.android.demoapp;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
+import android.content.SharedPreferences;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
-import com.exacttarget.etpushsdk.ETException;
-import com.exacttarget.etpushsdk.ETLogListener;
-import com.exacttarget.etpushsdk.ETNotificationBuilder;
-import com.exacttarget.etpushsdk.ETNotifications;
-import com.exacttarget.etpushsdk.ETPush;
-import com.exacttarget.etpushsdk.ETPushConfig;
-import com.exacttarget.etpushsdk.ETPushConfigureSdkListener;
-import com.exacttarget.etpushsdk.ETRequestStatus;
-import com.exacttarget.etpushsdk.data.Attribute;
-import com.exacttarget.etpushsdk.data.Region;
-import com.exacttarget.etpushsdk.event.BeaconResponseEvent;
-import com.exacttarget.etpushsdk.event.GeofenceResponseEvent;
-import com.exacttarget.etpushsdk.event.RegistrationEvent;
-import com.exacttarget.etpushsdk.util.EventBus;
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.maps.model.LatLng;
+import com.salesforce.marketingcloud.InitializationStatus;
+import com.salesforce.marketingcloud.MCLogListener;
+import com.salesforce.marketingcloud.MarketingCloudConfig;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
+import com.salesforce.marketingcloud.android.demoapp.ui.OpenDirectActivity;
+import com.salesforce.marketingcloud.data.Attribute;
+import com.salesforce.marketingcloud.data.Registration;
+import com.salesforce.marketingcloud.messages.Region;
+import com.salesforce.marketingcloud.messages.RegionMessageManager;
+import com.salesforce.marketingcloud.messages.geofence.GeofenceMessageResponse;
+import com.salesforce.marketingcloud.messages.proximity.ProximityMessageResponse;
+import com.salesforce.marketingcloud.notifications.NotificationManager;
+import com.salesforce.marketingcloud.notifications.NotificationMessage;
+import com.salesforce.marketingcloud.registration.RegistrationManager;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.TimeZone;
 
 import hugo.weaving.DebugLog;
@@ -63,7 +58,9 @@ import hugo.weaving.DebugLog;
  * @author Salesforce &reg; 2015.
  */
 @DebugLog
-public class LearningAppApplication extends Application implements ETLogListener, ETPushConfigureSdkListener {
+public class LearningAppApplication extends Application implements MarketingCloudSdk.InitializationListener,
+        RegistrationManager.RegistrationEventListener, RegionMessageManager.GeofenceMessageResponseListener,
+        RegionMessageManager.ProximityMessageResponseListener, NotificationManager.NotificationBuilder {
 
     /**
      * Set to true to show how Salesforce analytics will save statistics for
@@ -90,24 +87,8 @@ public class LearningAppApplication extends Application implements ETLogListener
     public static final boolean LOCATION_ENABLED = true;
     public static final SimpleDateFormat timestampFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
     private static final String TAG = "~#LearningApp";
-    private static final LinkedHashSet<EtPushListener> listeners = new LinkedHashSet<>();
-    private static ETPush etPush;
     private SharedPreferences sharedPreferences;
     private String lastBeaconReceivedEventDatetime = "";
-
-    /**
-     * If ETPush is null then hold on to a reference of the listener so we can notify them when push
-     * is ready.
-     *
-     * @param etPushListener our object that cares about ETPush
-     * @return ETPush or null
-     */
-    public static ETPush getEtPush(@NonNull final EtPushListener etPushListener) {
-        if (etPush == null) {
-            listeners.add(etPushListener);
-        }
-        return etPush;
-    }
 
     public String getLastBeaconReceivedEventDatetime() {
         if (TextUtils.isEmpty(lastBeaconReceivedEventDatetime)) {
@@ -150,112 +131,75 @@ public class LearningAppApplication extends Application implements ETLogListener
 
         sharedPreferences = getSharedPreferences("AndroidLearningApp", Context.MODE_PRIVATE);
 
-        /**
-         * Register the application to listen for events posted to a private communication bus
-         * by the SDK.
-         */
-        EventBus.getInstance().register(this);
-
         /** Register to receive push notifications. */
-        try {
-            ETPush.configureSdk(new ETPushConfig.Builder(this)
-                            .setEtAppId(getString(R.string.app_id))
-                            .setAccessToken(getString(R.string.access_token))
-                            .setGcmSenderId(getString(R.string.gcm_sender_id))
-                            .setLogLevel(BuildConfig.DEBUG ? Log.VERBOSE : Log.ERROR)
-                            .setAnalyticsEnabled(ANALYTICS_ENABLED)
-                            .setLocationEnabled(LOCATION_ENABLED)
-                            .setPiAnalyticsEnabled(WAMA_ENABLED)
-                            .setCloudPagesEnabled(CLOUD_PAGES_ENABLED)
-                            .setProximityEnabled(PROXIMITY_ENABLED)
-                            .setNotificationResourceId(R.drawable.ic_stat_app_logo_transparent)
-                            .setOpenDirectRecipientClass(OpenDirectActivity.class)
-                            .build()
-                    , this // Our ETPushConfigureSdkListener
-            );
-        } catch (ETException e) {
-            Log.e(TAG, e.getMessage(), e);
-        }
+        MarketingCloudSdk.setLogLevel(BuildConfig.DEBUG ? Log.VERBOSE : Log.ERROR);
+        MarketingCloudSdk.setLogListener(new MCLogListener.AndroidLogListener());
+        MarketingCloudSdk.init(this, MarketingCloudConfig.builder().setApplicationId(getString(R.string.app_id))
+                .setAccessToken(getString(R.string.access_token))
+                .setGcmSenderId(getString(R.string.gcm_sender_id))
+                .setAnalyticsEnabled(ANALYTICS_ENABLED)
+                .setGeofencingEnabled(LOCATION_ENABLED)
+//                .setPiAnalyticsEnabled(WAMA_ENABLED)
+                .setCloudPagesEnabled(CLOUD_PAGES_ENABLED)
+                .setProximityEnabled(PROXIMITY_ENABLED)
+                .setNotificationSmallIconResId(R.drawable.ic_stat_app_logo_transparent)
+                .setNotificationBuilder(this)
+                .setOpenDirectRecipient(OpenDirectActivity.class).build(), this);
+
+        MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
+            @Override
+            public void ready(MarketingCloudSdk sdk) {
+                sdk.getRegistrationManager().registerForRegistrationEvents(LearningAppApplication.this);
+                sdk.getRegionMessageManager().registerGeofenceMessageResponseListener(LearningAppApplication.this);
+                sdk.getRegionMessageManager().registerProximityMessageResponseListener(LearningAppApplication.this);
+            }
+        });
     }
 
     /**
-     * Called when configureSdk() has successfully completed.
+     * Called when sdk initialization has completed.
      * <p/>
-     * When the readyAimFire() initialization is completed, start watching at beacon messages.
-     *
-     * @param etPush          a ready-to-use instance of ETPush.
-     * @param etRequestStatus an additional status field regarding SDK readiness.
+     * When the SDK initialization is completed.
      */
     @Override
-    public void onETPushConfigurationSuccess(final ETPush etPush, final ETRequestStatus etRequestStatus) {
-        LearningAppApplication.etPush = etPush;
-        ETAnalytics.trackPageView("data://ReadyAimFireCompleted", "Marketing Cloud SDK Initialization Complete");
+    public void complete(InitializationStatus status) {
+        if (!status.isUsable()) {
+            Log.e(TAG, "Marketing Cloud Sdk init failed.", status.unrecoverableException());
+        } else {
+            MarketingCloudSdk cloudSdk = MarketingCloudSdk.getMarketingCloudSdk();
+            cloudSdk.getAnalyticsManager().trackPageView("data://ReadyAimFireCompleted", "Marketing Cloud SDK Initialization Complete", null, null);
 
-        // If there was an user recoverable issue with Google Play Services then show a notification to the user
-        int googlePlayServicesStatus = etRequestStatus.getGooglePlayServiceStatusCode();
-        String statusMessage = GoogleApiAvailability.getInstance().getErrorString(googlePlayServicesStatus);
-        boolean userResolvableError = GoogleApiAvailability.getInstance().isUserResolvableError(googlePlayServicesStatus);
-        boolean googlePlayServicesAvailable = googlePlayServicesStatus == ConnectionResult.SUCCESS;
-
-        Log.i(TAG, String.format(Locale.ENGLISH, "Google Play Services Availability: %s", statusMessage));
-        if (!googlePlayServicesAvailable) {
-            Log.i(TAG, String.format(Locale.ENGLISH, "Is user resolvable? %s", String.valueOf(userResolvableError)));
-            if (userResolvableError) {
-                GoogleApiAvailability.getInstance().showErrorNotification(this, googlePlayServicesStatus);
-            }
-        }
-
-        String sdkState;
-        try {
-            sdkState = ETPush.getInstance().getSDKState();
-        } catch (ETException e) {
-            sdkState = e.getMessage();
-        }
-        Log.v(TAG, sdkState); // Write the current SDK State to the Logs.
-
-        if (!listeners.isEmpty()) { // Tell our listeners that the SDK is ready for use
-            for (EtPushListener listener : listeners) {
-                if (listener != null) {
-                    listener.onReadyForPush(etPush);
+            if (status.locationsError()) {
+                final GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
+                Log.i(TAG, String.format(Locale.ENGLISH, "Google Play Services Availability: %s", googleApiAvailability.getErrorString(status.locationPlayServicesStatus())));
+                if (googleApiAvailability.isUserResolvableError(status.locationPlayServicesStatus())) {
+                    googleApiAvailability.showErrorNotification(LearningAppApplication.this, status.locationPlayServicesStatus());
                 }
             }
-            listeners.clear();
         }
-
-/*
-    Send a push payload with "category" as a key and "sale" as a value to see how
-    Interactive Notifications work.  "sale_date" is also required as our Interactive
-    Notification will create a calendar reminder on the specified date.
-
-    {
-     "data" : {
-        "alert":"Join us for our once in a decade sale!",
-        "category":"sale",
-        "sale_date": "2020-12-31"
-        "event_title": "BIG SALE!"
-     }
     }
- */
-ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
-    @Override
-    public NotificationCompat.Builder setupNotificationBuilder(Context context, Bundle payload) {
-        NotificationCompat.Builder builder = ETNotifications.setupNotificationBuilder(context, payload);
 
-        if (TextUtils.isEmpty(payload.getString("category")) || TextUtils.isEmpty(payload.getString("sale_date"))) {
+
+    @Override
+    public NotificationCompat.Builder setupNotificationBuilder(@NonNull Context context, @NonNull NotificationMessage notificationMessage) {
+        NotificationCompat.Builder builder = NotificationManager.setupNotificationBuilder(context, notificationMessage);
+
+        Map<String, String> customKeys = notificationMessage.customKeys();
+        if (!customKeys.containsKey("category") || !customKeys.containsKey("sale_date")) {
             return builder;
         }
 
-        if ("sale".equalsIgnoreCase(payload.getString("category"))) {
+        if ("sale".equalsIgnoreCase(customKeys.get("category"))) {
             SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             simpleDateFormat.setTimeZone(TimeZone.getDefault());
             try {
-                Date saleDate = simpleDateFormat.parse(payload.getString("sale_date"));
+                Date saleDate = simpleDateFormat.parse(customKeys.get("sale_date"));
                 Intent intent = new Intent(Intent.ACTION_INSERT)
                         .setData(CalendarContract.Events.CONTENT_URI)
                         .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, saleDate.getTime())
                         .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, saleDate.getTime())
-                        .putExtra(CalendarContract.Events.TITLE, payload.getString("event_title"))
-                        .putExtra(CalendarContract.Events.DESCRIPTION, payload.getString("alert"))
+                        .putExtra(CalendarContract.Events.TITLE, customKeys.get("event_title"))
+                        .putExtra(CalendarContract.Events.DESCRIPTION, customKeys.get("alert"))
                         .putExtra(CalendarContract.Events.HAS_ALARM, 1)
                         .putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
                 PendingIntent pendingIntent = PendingIntent.getActivity(context, R.id.interactive_notification_reminder, intent, PendingIntent.FLAG_CANCEL_CURRENT);
@@ -265,18 +209,6 @@ ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
             }
         }
         return builder;
-    }
-});
-    }
-
-    /**
-     * Called when the SDK failed to initialized.
-     *
-     * @param etException an exception containing the reason/message regarding the failure.
-     */
-    @Override
-    public void onETPushConfigurationFailed(ETException etException) {
-        Log.e(TAG, etException.getMessage(), etException);
     }
 
     /**
@@ -290,22 +222,20 @@ ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
      * <p/>
      * These events are only called if EventBus.getInstance().register() is called.
      * <p/>
-     *
-     * @param event contains attributes which identify the type of event and are logged.
      */
-    @SuppressWarnings({"unused", "unchecked"})
-    public void onEvent(final RegistrationEvent event) {
-        ETAnalytics.trackPageView("data://RegistrationEvent", "Registration Event Completed");
-        if (ETPush.getLogLevel() <= Log.DEBUG) {
+    @Override
+    public void onRegistrationReceived(@NonNull Registration registration) {
+        MarketingCloudSdk.getMarketingCloudSdk().getAnalyticsManager().trackPageView("data://RegistrationEvent", "Registration Event Completed", null, null);
+        if (MarketingCloudSdk.getLogLevel() <= Log.DEBUG) {
             Log.d(TAG, "Marketing Cloud update occurred.");
-            Log.d(TAG, "Device ID:" + event.getDeviceId());
-            Log.d(TAG, "Device Token:" + event.getSystemToken());
-            Log.d(TAG, "Subscriber key:" + event.getSubscriberKey());
-            for (Object attribute : event.getAttributes()) {
-                Log.d(TAG, "Attribute " + ((Attribute) attribute).getKey() + ": [" + ((Attribute) attribute).getValue() + "]");
+            Log.d(TAG, "Device ID:" + registration.deviceId());
+            Log.d(TAG, "Device Token:" + registration.systemToken());
+            Log.d(TAG, "Subscriber key:" + registration.contactKey());
+            for (Attribute attribute : registration.attributes()) {
+                Log.d(TAG, "Attribute " + (attribute).key() + ": [" + (attribute).value() + "]");
             }
-            Log.d(TAG, "Tags: " + event.getTags());
-            Log.d(TAG, "Language: " + event.getLocale());
+            Log.d(TAG, "Tags: " + registration.tags());
+            Log.d(TAG, "Language: " + registration.locale());
             Log.d(TAG, String.format("Last sent: %1$d", System.currentTimeMillis()));
         }
     }
@@ -315,19 +245,17 @@ ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
      * <p/>
      * This event retrieves the data related to geolocations
      * beacons are saved as a list of MCGeofence in MCLocationManager
-     *
-     * @param event the type of event we're listening for.
      */
-    @SuppressWarnings("unused, unchecked")
-    public void onEvent(final GeofenceResponseEvent event) {
-        ETAnalytics.trackPageView("data://GeofenceResponseEvent", "Geofence Response Event Received");
-        ArrayList<Region> regions = (ArrayList<Region>) event.getFences();
+    @Override
+    public void onGeofenceMessageResponse(GeofenceMessageResponse response) {
+        MarketingCloudSdk.getMarketingCloudSdk().getAnalyticsManager().trackPageView("data://GeofenceResponseEvent", "Geofence Response Event Received", null, null);
+        List<Region> regions = response.fences();
         for (Region r : regions) {
             MCGeofence newLocation = new MCGeofence();
-            LatLng latLng = new LatLng(r.getLatitude(), r.getLongitude());
+            LatLng latLng = new LatLng(r.center().latitude(), r.center().longitude());
             newLocation.setCoordenates(latLng);
-            newLocation.setRadius(r.getRadius());
-            newLocation.setName(r.getName());
+            newLocation.setRadius(r.radius());
+            newLocation.setName(r.name());
             MCLocationManager.getInstance().getGeofences().add(newLocation);
         }
     }
@@ -338,75 +266,22 @@ ETNotifications.setNotificationBuilder(new ETNotificationBuilder() {
      * This event retrieves the data related to beacon messages and saves them
      * as a list of MCBeacon in MCLocationManager.
      * <p/>
-     *
-     * @param event the type of event we're listening for.
      */
-    @SuppressWarnings("unused, unchecked")
-    public void onEvent(final BeaconResponseEvent event) {
-        ETAnalytics.trackPageView("data://BeaconResponse", "Beacon Response Event Received");
-        ArrayList<Region> regions = (ArrayList<Region>) event.getBeacons();
+    @Override
+    public void onProximityMessageResponse(ProximityMessageResponse response) {
+        MarketingCloudSdk.getMarketingCloudSdk().getAnalyticsManager().trackPageView("data://BeaconResponse", "Beacon Response Event Received", null, null);
+        List<Region> regions = response.beacons();
         for (Region r : regions) {
             MCBeacon newBeacon = new MCBeacon();
-            LatLng latLng = new LatLng(r.getLatitude(), r.getLongitude());
+            LatLng latLng = new LatLng(r.center().latitude(), r.center().longitude());
             newBeacon.setCoordenates(latLng);
             newBeacon.setRadius(getResources().getInteger(R.integer.beacon_radius));
-            newBeacon.setName(r.getName());
-            newBeacon.setGuid(r.getGuid());
+            newBeacon.setName(r.name());
+            newBeacon.setGuid(r.proximityUuid());
             MCLocationManager.getInstance().getBeacons().add(newBeacon);
             lastBeaconReceivedEventDatetime = timestampFormat.format(new Date(System.currentTimeMillis()));
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("lastBeaconReceivedEventDatetime", lastBeaconReceivedEventDatetime);
         }
     }
-
-    @Override
-    public void out(int severity, String tag, String message, @Nullable Throwable throwable) {
-        /*
-         * Using this method you can interact with SDK log output.
-         * Severity is populated with log levels like Log.VERBOSE, Log.INFO etc.
-         * Message, is populated with the actual log output text.
-         * Tag, is a free form string representing the log tag you've selected.
-         * Finally, the optional Throwable Throwable represents a thrown exception.
-         */
-
-        /*
-         * Assuming you have crashytics enabled for your app, the following code would send
-         * log data to Crashytics in the event that the log's severity is ERROR or ASSERT
-         */
-
-        if (throwable != null) {
-            // We have an exception to log:
-            // Commenting out all references to Crashlytics.
-            // Crashlytics.logException(throwable);
-        }
-
-        switch (severity) {
-            case Log.ERROR:
-                Log.e(tag, message);
-                // Crashlytics.log(severity, tag, message);
-                break;
-            case Log.ASSERT:
-                Log.wtf(tag, message);
-                // Crashlytics.log(severity, tag, message);
-                try {
-                    // If we're logging a failed ASSERT, also grab the getSDKState() data and log that as well
-                    Log.v("SDKState Information", ETPush.getInstance().getSDKState());
-                    // Crashlytics.log(ETPush.getInstance().getSDKState());
-                } catch (ETException etException) {
-                    Log.v("ErrorGettingSDKState", etException.getMessage());
-                    // Crashlytics.log(String.format(Locale.ENGLISH, "Error Getting SDK State: %s", etException.getMessage()));
-                }
-                break;
-            default:
-                Log.v(tag, message);
-        }
-    }
-
-    /*
-     * Public interface for the main activity to implement
-     */
-    public interface EtPushListener {
-        void onReadyForPush(ETPush etPush);
-    }
-
 }

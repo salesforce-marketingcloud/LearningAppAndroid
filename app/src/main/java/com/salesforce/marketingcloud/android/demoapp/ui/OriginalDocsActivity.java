@@ -13,7 +13,7 @@ import android.view.MenuItem;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
 import hugo.weaving.DebugLog;
@@ -40,7 +40,13 @@ public class OriginalDocsActivity extends AppCompatActivity {
                 return false;
             }
         });
-        ETAnalytics.trackPageView("data://OriginalDocsActivity", getResources().getString(R.string.official_remote_url));
+
+        MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
+            @Override
+            public void ready(MarketingCloudSdk marketingCloudSdk) {
+                marketingCloudSdk.getAnalyticsManager().trackPageView("data://OriginalDocsActivity", getResources().getString(R.string.official_remote_url), null, null);
+            }
+        });
     }
 
     /**

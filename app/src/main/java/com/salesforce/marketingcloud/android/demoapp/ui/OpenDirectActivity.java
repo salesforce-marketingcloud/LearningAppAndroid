@@ -7,8 +7,10 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.webkit.URLUtil;
 
-import com.exacttarget.etpushsdk.ETLandingPagePresenter;
 import com.salesforce.marketingcloud.android.demoapp.R;
+import com.salesforce.marketingcloud.notifications.DefaultUrlPresenter;
+import com.salesforce.marketingcloud.notifications.NotificationManager;
+import com.salesforce.marketingcloud.notifications.NotificationMessage;
 
 import java.util.Locale;
 
@@ -21,9 +23,11 @@ public class OpenDirectActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_open_direct);
 
+        NotificationMessage notificationMessage = NotificationManager.extractMessage(getIntent());
+
         String url = null;
-        if (this.getIntent().getExtras() != null && this.getIntent().getExtras().containsKey("_od")) {
-            url = this.getIntent().getExtras().getString("_od");
+        if (notificationMessage != null && notificationMessage.type() == NotificationMessage.Type.OPEN_DIRECT) {
+            url = notificationMessage.url();
         }
 
         Intent intent = new Intent(this, MainActivity.class);
@@ -37,8 +41,7 @@ public class OpenDirectActivity extends AppCompatActivity {
                     break;
                 default:
                     if (URLUtil.isValidUrl(url)) {
-                        intent = new Intent(this, ETLandingPagePresenter.class);
-                        intent.putExtras(getIntent().getExtras());
+                        intent = DefaultUrlPresenter.intentForPresenter(this, notificationMessage);
                     }
             }
         }

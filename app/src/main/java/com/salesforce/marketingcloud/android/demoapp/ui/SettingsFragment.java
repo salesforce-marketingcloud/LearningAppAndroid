@@ -28,13 +28,11 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
-import com.exacttarget.etpushsdk.ETException;
-import com.exacttarget.etpushsdk.ETPush;
-import com.exacttarget.etpushsdk.data.Attribute;
-import com.salesforce.marketingcloud.android.demoapp.LearningAppApplication;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.android.demoapp.utils.Utils;
+import com.salesforce.marketingcloud.data.Attribute;
+import com.salesforce.marketingcloud.registration.RegistrationManager;
 
 import java.util.HashSet;
 import java.util.Locale;
@@ -71,7 +69,7 @@ import hugo.weaving.DebugLog;
  * @author Salesforce &reg; 2015.
  */
 @DebugLog
-public class SettingsFragment extends PreferenceFragment implements LearningAppApplication.EtPushListener {
+public class SettingsFragment extends PreferenceFragment implements MarketingCloudSdk.WhenReadyListener {
     private static final String TAG = "~#SettingsFragment";
 
     // KEYS
@@ -91,6 +89,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
     // Elements we'll use with the ETPush SDK
     private Set<Attribute> attributes = new HashSet<>();
     private String subscriberKey;
+    private MarketingCloudSdk cloudSdk;
     private String lastnameAttribute;
     private String firstnameAttribute;
 
@@ -106,39 +105,36 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
         sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
         preferenceScreen = getPreferenceScreen();
 
-        ETAnalytics.trackPageView("data://SettingsActivity", "Loading Settings activity");
-
-        ETPush etPush = LearningAppApplication.getEtPush(this); // Add ourselves as an LearningAppApplication.EtPushListener
-        if (etPush == null) {
-            // Display a progress dialog while we wait for ETPush to finish initializing. <-- Seeing this should be exceedingly rare!
+        MarketingCloudSdk.requestSdk(this);
+        if (cloudSdk == null) {
             dialog = ProgressDialog.show(getActivity(), "", "Waiting for ETPush to finish initializing ...", true);
             progressDialogHandler.postDelayed(dialogRunnable, 30000);
-        } else {
-            // Hide the progress dialog & show the Attributes, SubscriberKey and Tags.  If ETPush hasn't
-            // finished initializing, the callback will get executed by our LearningAppApplication.
-            this.onReadyForPush(etPush);
         }
     }
 
     @Override
-    public void onReadyForPush(@NonNull final ETPush etPush) {
+    public void ready(MarketingCloudSdk marketingCloudSdk) {
+        cloudSdk = marketingCloudSdk;
+        marketingCloudSdk.getAnalyticsManager().trackPageView("data://SettingsActivity", "Loading Settings activity", null, null);
+
         progressDialogHandler.removeCallbacks(dialogRunnable);
         try {
-            for (Attribute attribute : etPush.getAttributes()) {
-                if (attribute.getKey().equals("FirstName") || attribute.getKey().equals("LastName")) {
+            RegistrationManager registrationManager = marketingCloudSdk.getRegistrationManager();
+            for (Attribute attribute : registrationManager.getAttributes()) {
+                if (attribute.key().equals("FirstName") || attribute.key().equals("LastName")) {
                     attributes.add(attribute);
                 }
             }
-            attributes.addAll(etPush.getAttributes());
-            subscriberKey = etPush.getSubscriberKey();
-            tags.addAll(etPush.getTags());
-        } catch (ETException e) {
-            Log.e(TAG, e.getMessage());
+            attributes.addAll(registrationManager.getAttributes());
+            subscriberKey = registrationManager.getContactKey();
+            tags.addAll(registrationManager.getTags());
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
         }
 
-        displaySubscriberKey(subscriberKey, etPush);
-        displayAttributes(attributes, etPush);
-        displayTags(tags, etPush);
+        displaySubscriberKey(subscriberKey, marketingCloudSdk);
+        displayAttributes(attributes, marketingCloudSdk);
+        displayTags(tags, marketingCloudSdk);
 
         // Hide the progress dialog
         if (dialog != null) {
@@ -156,8 +152,8 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
         }
     }
 
-    private void displaySubscriberKey(@NonNull final @Size(min = 1) String subscriberKey, @NonNull final ETPush etPush) {
-        if (TextUtils.isEmpty(subscriberKey) || etPush == null) {
+    private void displaySubscriberKey(@NonNull final @Size(min = 1) String subscriberKey, @NonNull final MarketingCloudSdk cloudSdk) {
+        if (TextUtils.isEmpty(subscriberKey) || cloudSdk == null) {
             // display message
             return;
         }
@@ -188,7 +184,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                             return;
                         } else {
                             try {
-                                if (etPush.setSubscriberKey(newSubscriberKey)) {
+                                if (cloudSdk.getRegistrationManager().edit().setContactKey(newSubscriberKey).commit()) {
                                     // Save the preference to Shared Preferences only if we don't encounter an error
                                     SharedPreferences.Editor editor = sharedPreferences.edit();
                                     editor.putString(KEY_PREF_SUBSCRIBER_KEY, newSubscriberKey);
@@ -198,7 +194,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                                     Utils.flashError(editText, getString(R.string.error_could_not_update));
                                     return;
                                 }
-                            } catch (ETException e) {
+                            } catch (Exception e) {
                                 Log.e("TAG", e.getMessage(), e);
                                 return;
                             }
@@ -207,14 +203,14 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                         preference.setSummary(newSubscriberKey);
                     }
                 });
-                ETAnalytics.trackPageView("data://SettingsActivity-SubscriberKeySet", "Subscriber Key Set");
+                cloudSdk.getAnalyticsManager().trackPageView("data://SettingsActivity-SubscriberKeySet", "Subscriber Key Set", null, null);
                 return true;
             }
         });
 
     }
 
-    private void displayAttributes(@NonNull final Set<Attribute> attributes, @NonNull final ETPush etPush) {
+    private void displayAttributes(@NonNull final Set<Attribute> attributes, @NonNull final MarketingCloudSdk cloudSdk) {
         if (attributes.isEmpty()) {
             // display message
             return;
@@ -224,10 +220,10 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
         String firstName = null;
         String lastName = null;
         for (Attribute attribute : attributes) {
-            if (attribute.getKey().equalsIgnoreCase("firstname")) {
-                firstName = attribute.getValue();
-            } else if (attribute.getKey().equalsIgnoreCase("lastname")) {
-                lastName = attribute.getValue();
+            if (attribute.key().equalsIgnoreCase("firstname")) {
+                firstName = attribute.value();
+            } else if (attribute.key().equalsIgnoreCase("lastname")) {
+                lastName = attribute.value();
             }
         }
         final PreferenceCategory preferenceCategory = (PreferenceCategory) this.preferenceScreen.findPreference("pref_attributes_section");
@@ -261,10 +257,10 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                             return;
                         } else {
                             try {
-                                etPush.addAttribute("FirstName", value);
+                                cloudSdk.getRegistrationManager().edit().setAttribute("FirstName", value).commit();
                                 editTextPreference.setSummary(value);
                                 sharedPreferences.edit().putString(KEY_PREF_FIRSTNAME_ATTRIBUTE, value).apply();
-                            } catch (ETException e) {
+                            } catch (Exception e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
                             //configureAttributes(etPush);
@@ -307,10 +303,11 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                             return;
                         } else {
                             try {
-                                etPush.addAttribute("LastName", value);
+
+                                cloudSdk.getRegistrationManager().edit().setAttribute("LastName", value).commit();
                                 editTextPreference.setSummary(value);
                                 sharedPreferences.edit().putString(KEY_PREF_LASTNAME_ATTRIBUTE, value).apply();
-                            } catch (ETException e) {
+                            } catch (Exception e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
                         }
@@ -323,8 +320,8 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
 
     }
 
-    private void displayTags(@NonNull final Set<String> tags, @NonNull final ETPush etPush) {
-        if (tags.isEmpty() || etPush == null) {
+    private void displayTags(@NonNull final Set<String> tags, @NonNull final MarketingCloudSdk cloudSdk) {
+        if (tags.isEmpty() || cloudSdk == null) {
             // display message
             return;
         }
@@ -343,7 +340,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
 
         /* Create rows from list of tags. */
         for (String tag : this.tags) {
-            addTagCheckbox(tagsSection, tag, etPush);
+            addTagCheckbox(tagsSection, tag, cloudSdk.getRegistrationManager());
         }
 
         final Preference preference = findPreference(KEY_PREF_NEW_TAG);
@@ -367,11 +364,11 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                             return;
                         } else {
                             try {
-                                addTag(value, etPush);
-                            } catch (ETException e) {
+                                addTag(value, cloudSdk.getRegistrationManager());
+                            } catch (Exception e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
-                            addTagCheckbox(tagsSection, value, etPush);
+                            addTagCheckbox(tagsSection, value, cloudSdk.getRegistrationManager());
                         }
                         alertDialog.dismiss();
                     }
@@ -410,10 +407,10 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
      *
      * @param tag a new Tag to be added.
      */
-    private void addTag(@NonNull final String tag, @NonNull final ETPush etPush) throws ETException {
+    private void addTag(@NonNull final String tag, @NonNull final RegistrationManager registrationManager) throws Exception {
         Set<String> tempSet = new HashSet<>();
         tempSet.add(tag);
-        etPush.addTag(tag);
+        registrationManager.edit().addTags(tag).commit();
         saveTagsToSharedPreferences(tempSet);
     }
 
@@ -423,7 +420,7 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
      * @param preferenceCategory the section where the Tag will be displayed.
      * @param tag                the Tag to be displayed on the screen.
      */
-    private void addTagCheckbox(PreferenceCategory preferenceCategory, final String tag, @NonNull final ETPush etPush) {
+    private void addTagCheckbox(PreferenceCategory preferenceCategory, final String tag, @NonNull final RegistrationManager registrationManager) {
         /* Creates a new row if is not already created for the Tag. */
         CheckBoxPreference checkBoxPreference = (CheckBoxPreference) this.preferenceScreen.findPreference(tag);
         if (checkBoxPreference == null) {
@@ -441,13 +438,15 @@ public class SettingsFragment extends PreferenceFragment implements LearningAppA
                     /* Add the Tag to the ETPush instance if checked, else remove it. */
                     Boolean enabled = (Boolean) newValue;
                     try {
+                        RegistrationManager.Editor editor = registrationManager.edit();
                         if (enabled) {
-                            etPush.addTag(tag);
+                            editor.addTags(tag);
                         } else {
-                            etPush.removeTag(tag);
+                            editor.removeTags(tag);
                         }
-                    } catch (ETException e) {
-                        if (ETPush.getLogLevel() <= Log.ERROR) {
+                        editor.commit();
+                    } catch (Exception e) {
+                        if (MarketingCloudSdk.getLogLevel() <= Log.ERROR) {
                             Log.e("TAG", e.getMessage(), e);
                         }
                     }

@@ -10,7 +10,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.0'
+        classpath 'com.android.tools.build:gradle:2.3.0'
         classpath 'com.jakewharton.hugo:hugo-plugin:1.2.1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -22,10 +22,10 @@ buildscript {
 // the maven url found on the last repository line
 allprojects {
     repositories {
+        mavenLocal()
         jcenter()
         mavenCentral()
         maven { url "http://salesforce-marketingcloud.github.io/JB4A-SDK-Android/repository" }
-        maven { url "http://nexus:8081/nexus/content/groups/public" }
     }
 }
 
