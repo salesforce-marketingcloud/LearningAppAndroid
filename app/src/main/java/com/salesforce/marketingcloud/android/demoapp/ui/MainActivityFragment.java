@@ -21,7 +21,7 @@ import hugo.weaving.DebugLog;
 /**
  * A placeholder fragment containing the home view.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class MainActivityFragment extends Fragment {

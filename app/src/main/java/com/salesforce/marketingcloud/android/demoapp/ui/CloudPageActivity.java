@@ -20,7 +20,7 @@ import hugo.weaving.DebugLog;
 /**
  * CloudPageActivity displays a Cloud Page.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class CloudPageActivity extends AppCompatActivity {

@@ -14,7 +14,7 @@ import hugo.weaving.DebugLog;
 /**
  * MCBeacon class stores beacon message data.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class MCBeacon {

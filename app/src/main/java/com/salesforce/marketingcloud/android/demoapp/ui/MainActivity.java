@@ -30,7 +30,7 @@ import hugo.weaving.DebugLog;
  * <p>
  * This activity extends AppCompatActivity to provide the primary interface for user interaction.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class MainActivity extends AppCompatActivity implements MarketingCloudSdk.WhenReadyListener {

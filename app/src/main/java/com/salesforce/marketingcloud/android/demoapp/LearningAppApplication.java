@@ -52,10 +52,8 @@ import hugo.weaving.DebugLog;
  * LearningAppApplication is the primary application class.
  * This class extends Application to provide global activities.
  * <p/>
- * As of 2016-02, you can now implement the ETLogListener interface.
- * Doing so enables you to capture log output from the SDK programmatically.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class LearningAppApplication extends Application implements MarketingCloudSdk.InitializationListener,
@@ -76,7 +74,7 @@ public class LearningAppApplication extends Application implements MarketingClou
      * Set to true to show how Predictive Intelligence analytics (PIAnalytics) will
      * save statistics for how your customers use the app (by invitation at this point).
      */
-    public static final boolean WAMA_ENABLED = true;
+    public static final boolean PI_ENABLED = true;
     /**
      * Set to true to show how beacons messages works within the SDK.
      */
@@ -100,14 +98,7 @@ public class LearningAppApplication extends Application implements MarketingClou
     /**
      * The onCreate() method initialize your app.
      * <p/>
-     * It registers the application to listen for events posted to a private communication bus
-     * by the SDK and calls `ETPush.readyAimFire` to configures the SDK to point to the correct code
-     * application and to initialize the ETPush, according to the constants defined before.
-     * <p/>
-     * When ReadyAimFire() is called for the first time for a device, it will get a device token
-     * from Google and send to the MarketingCloud.
-     * <p/>
-     * In ETPush.readyAimFire() you must set several parameters:
+     * In {@link MarketingCloudConfig.Builder} you must set several parameters:
      * <ul>
      * <li>
      * AppId and AccessToken: these values are taken from the Marketing Cloud definition for your app.
@@ -139,7 +130,7 @@ public class LearningAppApplication extends Application implements MarketingClou
                 .setGcmSenderId(getString(R.string.gcm_sender_id))
                 .setAnalyticsEnabled(ANALYTICS_ENABLED)
                 .setGeofencingEnabled(LOCATION_ENABLED)
-//                .setPiAnalyticsEnabled(WAMA_ENABLED)
+                .setPiAnalyticsEnabled(PI_ENABLED)
                 .setCloudPagesEnabled(CLOUD_PAGES_ENABLED)
                 .setProximityEnabled(PROXIMITY_ENABLED)
                 .setNotificationSmallIconResId(R.drawable.ic_stat_app_logo_transparent)
@@ -166,8 +157,8 @@ public class LearningAppApplication extends Application implements MarketingClou
         if (!status.isUsable()) {
             Log.e(TAG, "Marketing Cloud Sdk init failed.", status.unrecoverableException());
         } else {
-            MarketingCloudSdk cloudSdk = MarketingCloudSdk.getMarketingCloudSdk();
-            cloudSdk.getAnalyticsManager().trackPageView("data://ReadyAimFireCompleted", "Marketing Cloud SDK Initialization Complete", null, null);
+            MarketingCloudSdk cloudSdk = MarketingCloudSdk.getInstance();
+            cloudSdk.getAnalyticsManager().trackPageView("data://ReadyAimFireCompleted", "Marketing Cloud SDK Initialization Complete");
 
             if (status.locationsError()) {
                 final GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
@@ -212,20 +203,17 @@ public class LearningAppApplication extends Application implements MarketingClou
     }
 
     /**
-     * Listens for a RegistrationEvent on EventBus callback.
+     * Listens for Registrations
      * <p/>
      * This method is one of several methods to log notifications when an event occurs in the SDK.
      * Different attributes indicate which event has occurred.
      * <p/>
      * RegistrationEvent will be triggered when the SDK receives the response from the
      * registration as triggered by the com.google.android.c2dm.intent.REGISTRATION intent.
-     * <p/>
-     * These events are only called if EventBus.getInstance().register() is called.
-     * <p/>
      */
     @Override
     public void onRegistrationReceived(@NonNull Registration registration) {
-        MarketingCloudSdk.getMarketingCloudSdk().getAnalyticsManager().trackPageView("data://RegistrationEvent", "Registration Event Completed", null, null);
+        MarketingCloudSdk.getInstance().getAnalyticsManager().trackPageView("data://RegistrationEvent", "Registration Event Completed");
         if (MarketingCloudSdk.getLogLevel() <= Log.DEBUG) {
             Log.d(TAG, "Marketing Cloud update occurred.");
             Log.d(TAG, "Device ID:" + registration.deviceId());
@@ -241,14 +229,14 @@ public class LearningAppApplication extends Application implements MarketingClou
     }
 
     /**
-     * Listens for a GeofenceResponseEvent on EventBus callback.
+     * Listens for a GeofenceResponses.
      * <p/>
      * This event retrieves the data related to geolocations
-     * beacons are saved as a list of MCGeofence in MCLocationManager
+     * and saves them as a list of MCGeofence in MCLocationManager
      */
     @Override
     public void onGeofenceMessageResponse(GeofenceMessageResponse response) {
-        MarketingCloudSdk.getMarketingCloudSdk().getAnalyticsManager().trackPageView("data://GeofenceResponseEvent", "Geofence Response Event Received", null, null);
+        MarketingCloudSdk.getInstance().getAnalyticsManager().trackPageView("data://GeofenceResponseEvent", "Geofence Response Event Received");
         List<Region> regions = response.fences();
         for (Region r : regions) {
             MCGeofence newLocation = new MCGeofence();
@@ -261,7 +249,7 @@ public class LearningAppApplication extends Application implements MarketingClou
     }
 
     /**
-     * Listens for a BeaconResponseEvent on EventBus callback.
+     * Listens for a ProximityMessage responses.
      * <p/>
      * This event retrieves the data related to beacon messages and saves them
      * as a list of MCBeacon in MCLocationManager.
@@ -269,7 +257,7 @@ public class LearningAppApplication extends Application implements MarketingClou
      */
     @Override
     public void onProximityMessageResponse(ProximityMessageResponse response) {
-        MarketingCloudSdk.getMarketingCloudSdk().getAnalyticsManager().trackPageView("data://BeaconResponse", "Beacon Response Event Received", null, null);
+        MarketingCloudSdk.getInstance().getAnalyticsManager().trackPageView("data://BeaconResponse", "Beacon Response Event Received");
         List<Region> regions = response.beacons();
         for (Region r : regions) {
             MCBeacon newBeacon = new MCBeacon();

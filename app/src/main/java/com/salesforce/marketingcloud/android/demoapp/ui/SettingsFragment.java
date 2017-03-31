@@ -66,7 +66,7 @@ import hugo.weaving.DebugLog;
  * </li>
  * </ol>
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class SettingsFragment extends PreferenceFragment implements MarketingCloudSdk.WhenReadyListener {
