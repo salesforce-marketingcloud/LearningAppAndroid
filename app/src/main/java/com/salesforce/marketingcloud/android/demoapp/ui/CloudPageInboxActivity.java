@@ -21,50 +21,21 @@ import android.widget.ListView;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
-import com.exacttarget.etpushsdk.adapter.CloudPageListAdapter;
-import com.exacttarget.etpushsdk.data.Message;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
+import com.salesforce.marketingcloud.data.CloudPageMessage;
+import com.salesforce.marketingcloud.messages.cloudpage.CloudPageListAdapter;
 
 import hugo.weaving.DebugLog;
 
 /**
  * CloudPageInboxActivity works as an inbox for the Cloud Pages received.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class CloudPageInboxActivity extends AppCompatActivity {
     private MyCloudPageListAdapter cloudPageListAdapter;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.cloudpage_inbox_layout);
-        ETAnalytics.trackPageView("data://CloudPageInbox", "Cloud Page Inbox index view displayed");
-
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setHomeButtonEnabled(true);
-            getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
-        }
-
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        RadioGroup filterRadioGroup;
-        ListView cloudPageListView;
-
-        filterRadioGroup = (RadioGroup) findViewById(R.id.filterRadioGroup);
-        cloudPageListView = (ListView) findViewById(R.id.cloudPageListView);
-
-        filterRadioGroup.setOnCheckedChangeListener(radioChangedListener);
-
-        cloudPageListView.setOnItemClickListener(cloudPageItemClickListener);
-        cloudPageListView.setOnItemLongClickListener(cloudPageItemDeleteListener);
-
-        cloudPageListAdapter = new MyCloudPageListAdapter(getApplicationContext());
-        cloudPageListView.setAdapter(cloudPageListAdapter);
-    }
-
     /**
      * Listener of the radio buttons, the list is filtered according to the selected option.
      */
@@ -81,7 +52,6 @@ public class CloudPageInboxActivity extends AppCompatActivity {
             }
         }
     };
-
     /**
      * Long click event listener on the row, it deletes the Cloud Page.
      */
@@ -90,14 +60,13 @@ public class CloudPageInboxActivity extends AppCompatActivity {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
             CloudPageListAdapter adapter = (CloudPageListAdapter) parent.getAdapter();
-            Message message = (Message) adapter.getItem(position);
+            CloudPageMessage message = (CloudPageMessage) adapter.getItem(position);
 
             adapter.deleteMessage(message);
 
             return true;
         }
     };
-
     /**
      * Click event listener on the row, it starts a new CloudPageActivity, where the Cloud Page is going to be displayed.
      */
@@ -106,16 +75,49 @@ public class CloudPageInboxActivity extends AppCompatActivity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             CloudPageListAdapter adapter = (CloudPageListAdapter) parent.getAdapter();
-            Message message = (Message) adapter.getItem(position);
+            CloudPageMessage message = (CloudPageMessage) adapter.getItem(position);
 
             adapter.setMessageRead(message);
 
             Intent intent = new Intent(CloudPageInboxActivity.this, CloudPageActivity.class);
-            intent.putExtra("_x", message.getUrl());
+            intent.putExtra("_x", message.url());
             startActivity(intent);
         }
     };
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.cloudpage_inbox_layout);
+
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
+        }
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        RadioGroup filterRadioGroup;
+        final ListView cloudPageListView;
+
+        filterRadioGroup = (RadioGroup) findViewById(R.id.filterRadioGroup);
+        cloudPageListView = (ListView) findViewById(R.id.cloudPageListView);
+
+        filterRadioGroup.setOnCheckedChangeListener(radioChangedListener);
+
+        cloudPageListView.setOnItemClickListener(cloudPageItemClickListener);
+        cloudPageListView.setOnItemLongClickListener(cloudPageItemDeleteListener);
+
+        MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
+            @Override
+            public void ready(MarketingCloudSdk marketingCloudSdk) {
+                marketingCloudSdk.getAnalyticsManager().trackPageView("data://CloudPageInbox", "Cloud Page Inbox index view displayed", null, null);
+                cloudPageListAdapter = new MyCloudPageListAdapter(marketingCloudSdk);
+                cloudPageListView.setAdapter(cloudPageListAdapter);
+            }
+        });
+
+    }
 
     /**
      * Navigates back to parent's Activity: MainActivity
@@ -138,8 +140,8 @@ public class CloudPageInboxActivity extends AppCompatActivity {
      */
     private class MyCloudPageListAdapter extends CloudPageListAdapter {
 
-        public MyCloudPageListAdapter(Context appContext) {
-            super(appContext);
+        public MyCloudPageListAdapter(MarketingCloudSdk cloudSdk) {
+            super(cloudSdk);
         }
 
         @Override
@@ -161,17 +163,17 @@ public class CloudPageInboxActivity extends AppCompatActivity {
             icon = (ImageView) view.findViewById(R.id.readUnreadIcon);
             time = (TextView) view.findViewById(R.id.timeTextView);
 
-            Message message = (Message) getItem(position);
+            CloudPageMessage message = (CloudPageMessage) getItem(position);
 
-            if (message.getRead()) {
+            if (message.read()) {
                 icon.setImageResource(R.drawable.mail);
             } else {
                 icon.setImageResource(R.drawable.mail);
             }
 
-            subject.setText(message.getSubject());
+            subject.setText(message.subject());
 
-            time.setText(android.text.format.DateFormat.format("MMM dd yyyy - hh:mm a", message.getStartDate()));
+            time.setText(android.text.format.DateFormat.format("MMM dd yyyy - hh:mm a", message.startDateUtc()));
 
             return view;
         }

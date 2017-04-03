@@ -13,7 +13,7 @@ import hugo.weaving.DebugLog;
 /**
  * MCLocationManager class manages the geofence and beacon location messages.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  *
  */
 @DebugLog

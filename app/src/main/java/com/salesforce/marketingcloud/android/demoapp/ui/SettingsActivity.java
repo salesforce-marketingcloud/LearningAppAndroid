@@ -23,7 +23,7 @@ import hugo.weaving.DebugLog;
  * It is implemented calling a SettingsFragment class.
  *
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 
 @DebugLog

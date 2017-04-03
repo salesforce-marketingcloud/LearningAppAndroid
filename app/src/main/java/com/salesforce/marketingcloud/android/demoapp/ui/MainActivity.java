@@ -18,13 +18,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
-import com.exacttarget.etpushsdk.ETException;
-import com.exacttarget.etpushsdk.ETLocationManager;
-import com.exacttarget.etpushsdk.ETPush;
-import com.salesforce.marketingcloud.android.demoapp.LearningAppApplication;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.android.demoapp.utils.ActivityPermissionDelegate;
+import com.salesforce.marketingcloud.messages.RegionMessageManager;
 
 import hugo.weaving.DebugLog;
 
@@ -33,14 +30,13 @@ import hugo.weaving.DebugLog;
  * <p>
  * This activity extends AppCompatActivity to provide the primary interface for user interaction.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
-public class MainActivity extends AppCompatActivity implements LearningAppApplication.EtPushListener {
+public class MainActivity extends AppCompatActivity implements MarketingCloudSdk.WhenReadyListener {
 
     private final static String TAG = "~#MAIN ACTIVITY";
     private ActivityPermissionDelegate permissionDelegate;
-    private ETPush etPush;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +45,6 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
         WebView markdownView = (WebView) findViewById(R.id.markdownView);
         markdownView.getSettings().setJavaScriptEnabled(true);
         markdownView.loadUrl(getResources().getString(R.string.readme_remote_url));
-        ETAnalytics.trackPageView(getResources().getString(R.string.readme_remote_url), "Displaying Learning Apps Documentation On Device: ");
         markdownView.setWebViewClient(new WebViewClient() {
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
@@ -58,14 +53,7 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
             }
         });
 
-        if (etPush == null) {
-            // If etPush is null then get it from our application class or register for updates
-            etPush = LearningAppApplication.getEtPush(this);
-            if (etPush != null) {
-                // We can assume that we need to execute the tasks in our interface if our previous call resulted in a non-null etPush otherwise this would have already executed and our etPush would not have been null to begin with :)
-                this.onReadyForPush(etPush);
-            }
-        }
+        MarketingCloudSdk.requestSdk(this);
     }
 
     /**
@@ -110,22 +98,26 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
     }
 
     @Override
-    public void onReadyForPush(ETPush etPush) {
+    public void ready(MarketingCloudSdk marketingCloudSdk) {
         Log.v("Kevin", "Calling onReadyForPush");
-        ETAnalytics.trackPageView("data://OnPushReady", "Marketing Cloud SDK Ready for Push Messages");
-        this.etPush = etPush;
+        marketingCloudSdk.getAnalyticsManager().trackPageView(getResources().getString(R.string.readme_remote_url), "Displaying Learning Apps Documentation On Device: ", null, null);
+        marketingCloudSdk.getAnalyticsManager().trackPageView("data://OnPushReady", "Marketing Cloud SDK Ready for Push Messages", null, null);
         try {
             /*
                 A good practice is to add the application's version name as a tag that can later
                 be used to target push notifications to specific application versions.
              */
-            etPush.addTag(getPackageManager().getPackageInfo(getPackageName(), 0).versionName);
+            marketingCloudSdk.getRegistrationManager()
+                    .edit()
+                    .addTags(getPackageManager().getPackageInfo(getPackageName(), 0).versionName)
+                    .commit();
 
              /*
                 Android SDK v23 aka Marshmallow introduced a new Android permission model by which
                 the application developer must request permissions when they are used as opposed to
                 requesting them at installation time.
              */
+            final RegionMessageManager regionMessageManager = marketingCloudSdk.getRegionMessageManager();
             ActivityPermissionDelegate.PermissionRequest request = new ActivityPermissionDelegate.PermissionRequest(
                     "location",
                     new ActivityPermissionDelegate.PermissionCallback() {
@@ -133,10 +125,9 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
                         public void handleGranted() {
                             Log.i(TAG, "handleGranted()");
                             try {
-                                ETLocationManager etLocationManager = ETLocationManager.getInstance();
-                                etLocationManager.startWatchingLocation();
-                                //etLocationManager.startWatchingProximity(ETLocationManager.BEACON_LOGGING_VERBOSE);
-                            } catch (ETException e) {
+                                regionMessageManager.enableGeofenceMessaging();
+                                regionMessageManager.enableProximityMessaging();
+                            } catch (Exception e) {
                                 Log.e(TAG, e.getMessage(), e);
                             }
                         }
@@ -158,13 +149,11 @@ public class MainActivity extends AppCompatActivity implements LearningAppApplic
             permissionDelegate = new ActivityPermissionDelegate(this, new ActivityPermissionDelegate.PermissionRequest[]{request});
             permissionDelegate.requestPermission("location");
 
-            ETLocationManager etLocationManager = ETLocationManager.getInstance();
-            etLocationManager.startWatchingProximity();
 
-        } catch (ETException e) {
-            Log.e(TAG, e.getMessage(), e);
         } catch (PackageManager.NameNotFoundException e) {
             throw new RuntimeException(e.getMessage());
+        } catch (Exception e) {
+            Log.e(TAG, e.getMessage(), e);
         }
     }
 }

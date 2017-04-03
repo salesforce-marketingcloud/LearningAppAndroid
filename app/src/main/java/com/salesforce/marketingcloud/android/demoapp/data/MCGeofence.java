@@ -13,7 +13,7 @@ import hugo.weaving.DebugLog;
 /**
  * MCGeofence class stores geolocation message data.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class MCGeofence {

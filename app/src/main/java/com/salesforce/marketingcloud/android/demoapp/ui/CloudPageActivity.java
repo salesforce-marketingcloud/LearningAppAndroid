@@ -11,7 +11,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.Gravity;
 import android.webkit.WebView;
 import android.widget.LinearLayout;
-import com.exacttarget.etpushsdk.ETAnalytics;
+
+import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
 import hugo.weaving.DebugLog;
@@ -19,7 +20,7 @@ import hugo.weaving.DebugLog;
 /**
  * CloudPageActivity displays a Cloud Page.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class CloudPageActivity extends AppCompatActivity {
@@ -36,11 +37,17 @@ public class CloudPageActivity extends AppCompatActivity {
         linearLayout.setGravity(Gravity.CENTER);
 
         WebView webView = new WebView(this);
-        webView.loadUrl(this.getIntent().getExtras().getString("_x"));
+        webView.loadUrl(getIntent().getStringExtra("_x"));
         webView.getSettings().setJavaScriptEnabled(true);
         linearLayout.addView(webView);
-        ETAnalytics.trackPageView(this.getIntent().getExtras().getString("_x"), "Cloud Page displayed");
         setContentView(linearLayout);
+
+        MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
+            @Override
+            public void ready(MarketingCloudSdk marketingCloudSdk) {
+                marketingCloudSdk.getAnalyticsManager().trackPageView(getIntent().getStringExtra("_x"), "Cloud Page displayed", null, null);
+            }
+        });
     }
 
     @Override

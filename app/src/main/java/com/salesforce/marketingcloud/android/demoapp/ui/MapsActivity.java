@@ -11,7 +11,6 @@ import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -21,17 +20,18 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
+import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
-import com.salesforce.marketingcloud.android.demoapp.R;
 
 import hugo.weaving.DebugLog;
 
 /**
  * MapsActivity displays a Google map with the regions configured at Marketing Cloud.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -45,7 +45,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             getSupportActionBar().setHomeButtonEnabled(true);
             getSupportActionBar().setTitle(getResources().getString(R.string.app_name));
         }
-        ETAnalytics.trackPageView("data://MapActivity", getResources().getString(R.string.app_name));
+        MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
+            @Override
+            public void ready(MarketingCloudSdk marketingCloudSdk) {
+                marketingCloudSdk.getAnalyticsManager().trackPageView("data://MapActivity", getResources().getString(R.string.app_name), null, null);
+            }
+        });
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -71,9 +76,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     /**
      * Configures the google map
      * In case there is geolocations or beacons
+     *
      * @param map Google map to work on
      */
-    private void setUpMap(GoogleMap map){
+    private void setUpMap(GoogleMap map) {
         MCLocationManager lm = MCLocationManager.getInstance();
 
         /* lastCoord is the location which the map will show, the default being San Francisco */
@@ -81,7 +87,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Double.parseDouble(getResources().getString(R.string.default_longitude)));
 
         /* Loops through the beacons and set them in the map */
-        for (MCBeacon beacon : lm.getBeacons()){
+        for (MCBeacon beacon : lm.getBeacons()) {
             map.addMarker(new MarkerOptions()
                     .position(beacon.getCoordenates())
                     .title(beacon.getName())
@@ -95,7 +101,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         /* Loops through the locations and set them in the map */
-        for (MCGeofence location : lm.getGeofences()){
+        for (MCGeofence location : lm.getGeofences()) {
             map.addMarker(new MarkerOptions().position(location.getCoordenates()).title(location.getName()));
             map.addCircle(new CircleOptions()
                     .center(location.getCoordenates())

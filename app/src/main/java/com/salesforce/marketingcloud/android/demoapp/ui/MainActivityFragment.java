@@ -6,13 +6,14 @@
  */
 package com.salesforce.marketingcloud.android.demoapp.ui;
 
-import android.support.v4.app.Fragment;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.exacttarget.etpushsdk.ETAnalytics;
+import com.salesforce.marketingcloud.MarketingCloudSdk;
+import com.salesforce.marketingcloud.analytics.AnalyticsManager;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
 import hugo.weaving.DebugLog;
@@ -20,16 +21,23 @@ import hugo.weaving.DebugLog;
 /**
  * A placeholder fragment containing the home view.
  *
- * @author Salesforce &reg; 2015.
+ * @author Salesforce &reg; 2017.
  */
 @DebugLog
 public class MainActivityFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        ETAnalytics.trackPageView("data://LaunchedMainActivity", "Main Activity Launched");
-        ETAnalytics.trackPageView("LaunchedMainActivity", "Main Activity Launched");
-        ETAnalytics.trackPageView("MainActivityLaunched");
+        MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
+            @Override
+            public void ready(MarketingCloudSdk marketingCloudSdk) {
+                AnalyticsManager analyticsManager = marketingCloudSdk.getAnalyticsManager();
+                analyticsManager.trackPageView("data://LaunchedMainActivity", "Main Activity Launched", null, null);
+                analyticsManager.trackPageView("LaunchedMainActivity", "Main Activity Launched", null, null);
+                analyticsManager.trackPageView("MainActivityLaunched", null, null, null);
+            }
+        });
+
         return inflater.inflate(R.layout.fragment_main, container, false);
     }
 }

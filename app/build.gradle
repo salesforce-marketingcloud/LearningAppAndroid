@@ -10,14 +10,14 @@ apply plugin: 'com.jakewharton.hugo'
 android {
     /* Change these to fit your applications requirements! */
     /* 01 release brings support for android 23 (Marshmallow) */
-    compileSdkVersion 23
-    buildToolsVersion = "23.0.3"
+    compileSdkVersion 25
+    buildToolsVersion = "25.0.2"
 
     defaultConfig {
         applicationId "com.salesforce.marketingcloud.android.demoapp"
         minSdkVersion 16
         // MIN SDK for use with ETPush is 15, but this app uses 16 for maps compatibility
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
 
@@ -41,17 +41,13 @@ android {
 
 dependencies {
     /* SDK */
-    compile('com.exacttarget.etpushsdk:etsdk:4.7.1@aar') {
-        //exclude module: 'android-beacon-library'
-        transitive = true;
-        changing = true
-    }
+    compile 'com.salesforce.marketingcloud:marketingcloudsdk:5.0.0-SNAPSHOT'
 
-    compile 'com.google.android.gms:play-services-maps:9.2.0'
+    compile 'com.google.android.gms:play-services-maps:10.2.1'
 
     // This particular app, requires appCompat and design
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
 
     /*
         If you're implementing our SDK and do not need

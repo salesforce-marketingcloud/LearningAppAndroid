@@ -23,7 +23,7 @@
     <!-- ##### Begin 2016-02 Release functional Application node -->
     <application
         android:name=".LearningAppApplication"
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_label"
         android:theme="@style/AppTheme">
