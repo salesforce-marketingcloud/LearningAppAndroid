@@ -42,17 +42,12 @@ android {
 dependencies {
     /* SDK */
     compile 'com.salesforce.marketingcloud:marketingcloudsdk:5.0.0-SNAPSHOT'
-//    compile('com.exacttarget.etpushsdk:etsdk:4.7.1@aar') {
-//        //exclude module: 'android-beacon-library'
-//        transitive = true;
-//        changing = true
-//    }
 
-    compile 'com.google.android.gms:play-services-maps:10.2.0'
+    compile 'com.google.android.gms:play-services-maps:10.2.1'
 
     // This particular app, requires appCompat and design
-    compile 'com.android.support:appcompat-v7:25.3.0'
-    compile 'com.android.support:design:25.3.0'
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
 
     /*
         If you're implementing our SDK and do not need
