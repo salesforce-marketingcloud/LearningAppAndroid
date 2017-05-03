@@ -23,8 +23,8 @@ import android.widget.TextView;
 
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
-import com.salesforce.marketingcloud.data.CloudPageMessage;
 import com.salesforce.marketingcloud.messages.cloudpage.CloudPageListAdapter;
+import com.salesforce.marketingcloud.messages.cloudpage.CloudPageMessage;
 
 import hugo.weaving.DebugLog;
 
@@ -141,7 +141,7 @@ public class CloudPageInboxActivity extends AppCompatActivity {
     private class MyCloudPageListAdapter extends CloudPageListAdapter {
 
         public MyCloudPageListAdapter(MarketingCloudSdk cloudSdk) {
-            super(cloudSdk);
+            super(cloudSdk.getCloudPageMessageManager());
         }
 
         @Override

@@ -31,7 +31,7 @@ import android.widget.EditText;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.android.demoapp.utils.Utils;
-import com.salesforce.marketingcloud.data.Attribute;
+import com.salesforce.marketingcloud.registration.Attribute;
 import com.salesforce.marketingcloud.registration.RegistrationManager;
 
 import java.util.HashSet;
