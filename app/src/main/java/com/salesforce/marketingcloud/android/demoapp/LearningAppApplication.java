@@ -27,14 +27,14 @@ import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
 import com.salesforce.marketingcloud.android.demoapp.ui.OpenDirectActivity;
-import com.salesforce.marketingcloud.data.Attribute;
-import com.salesforce.marketingcloud.data.Registration;
 import com.salesforce.marketingcloud.messages.Region;
 import com.salesforce.marketingcloud.messages.RegionMessageManager;
 import com.salesforce.marketingcloud.messages.geofence.GeofenceMessageResponse;
 import com.salesforce.marketingcloud.messages.proximity.ProximityMessageResponse;
 import com.salesforce.marketingcloud.notifications.NotificationManager;
 import com.salesforce.marketingcloud.notifications.NotificationMessage;
+import com.salesforce.marketingcloud.registration.Attribute;
+import com.salesforce.marketingcloud.registration.Registration;
 import com.salesforce.marketingcloud.registration.RegistrationManager;
 
 import java.text.ParseException;
