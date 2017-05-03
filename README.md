@@ -30,8 +30,6 @@ On Android, we utilize a 'secrets.xml' file to contain the application credntial
 
 3. `access_token`: the Access Token for your development app as defined in the App Center section of the Marketing Cloud.
 
-> Note: You can use different keys for the staging/testing phase and the production phase.  Staging/testing keys are indicated by the prefix `staging_`. By default, the Learning App will utilize the `staging_ app_id`, `access_token`, and `gcm_sender_id`.
-
 # Resources
 
 For more information, check out our [developer documentation](http://salesforce-marketingcloud.github.io/JB4A-SDK-Android/).
