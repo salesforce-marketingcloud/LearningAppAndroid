@@ -22,10 +22,11 @@ buildscript {
 // the maven url found on the last repository line
 allprojects {
     repositories {
-        mavenLocal()
-        jcenter()
-        mavenCentral()
         maven { url "http://salesforce-marketingcloud.github.io/JB4A-SDK-Android/repository" }
+        maven {
+            url 'https://maven.google.com'
+        }
+        jcenter()
     }
 }
 
