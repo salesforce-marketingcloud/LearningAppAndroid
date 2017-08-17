@@ -1,0 +1,8 @@
+title: Learning App Android
+description: Mobile Engagement SDK App built to demonstrate and teach developers to use the SDK
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-slate
+
+gems:
+  - jekyll-mentions
