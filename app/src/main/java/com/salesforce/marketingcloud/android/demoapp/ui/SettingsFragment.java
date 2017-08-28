@@ -153,11 +153,6 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
     }
 
     private void displaySubscriberKey(@NonNull final @Size(min = 1) String subscriberKey, @NonNull final MarketingCloudSdk cloudSdk) {
-        if (TextUtils.isEmpty(subscriberKey) || cloudSdk == null) {
-            // display message
-            return;
-        }
-
         final Preference preference = findPreference(KEY_PREF_SUBSCRIBER_KEY);
         preference.setSummary(!TextUtils.isEmpty(subscriberKey) ? subscriberKey : sharedPreferences.getString(KEY_PREF_SUBSCRIBER_KEY, ""));
 
@@ -211,19 +206,17 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
     }
 
     private void displayAttributes(@NonNull final Set<Attribute> attributes, @NonNull final MarketingCloudSdk cloudSdk) {
-        if (attributes.isEmpty()) {
-            // display message
-            return;
-        }
         Log.i(TAG, String.format(Locale.ENGLISH, "ATTRIBUTES: %s", attributes));
         //saveAttributesToSharedPreferences(attributes);
         String firstName = null;
         String lastName = null;
-        for (Attribute attribute : attributes) {
-            if (attribute.key().equalsIgnoreCase("firstname")) {
-                firstName = attribute.value();
-            } else if (attribute.key().equalsIgnoreCase("lastname")) {
-                lastName = attribute.value();
+        if (attributes != null) {
+            for (Attribute attribute : attributes) {
+                if (attribute.key().equalsIgnoreCase("firstname")) {
+                    firstName = attribute.value();
+                } else if (attribute.key().equalsIgnoreCase("lastname")) {
+                    lastName = attribute.value();
+                }
             }
         }
         final PreferenceCategory preferenceCategory = (PreferenceCategory) this.preferenceScreen.findPreference("pref_attributes_section");
@@ -321,10 +314,6 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
     }
 
     private void displayTags(@NonNull final Set<String> tags, @NonNull final MarketingCloudSdk cloudSdk) {
-        if (tags.isEmpty() || cloudSdk == null) {
-            // display message
-            return;
-        }
         Log.i(TAG, String.format(Locale.ENGLISH, "TAGS: %s", tags));
         saveTagsToSharedPreferences(tags);
 
@@ -385,6 +374,9 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
      */
     @SuppressLint("CommitPrefEdits")
     private void saveTagsToSharedPreferences(Set<String> pSet) {
+        if(pSet == null) {
+            return;
+        }
         /* Retrieves the tags stored in Shared preferences */
         //Set<String> setToLoad = sharedPreferences.getStringSet("tags", null) == null ? new HashSet<String>() : sharedPreferences.getStringSet("tags", null);
         Set<String> setToLoad = sharedPreferences.getStringSet("tags", new HashSet<String>());
