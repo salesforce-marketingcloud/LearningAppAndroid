@@ -135,6 +135,7 @@ public class LearningAppApplication extends Application implements MarketingClou
                 .setProximityEnabled(PROXIMITY_ENABLED)
                 .setNotificationSmallIconResId(R.drawable.ic_stat_app_logo_transparent)
                 .setNotificationBuilder(this)
+                .setNotificationChannelName("Marketing Notifications")
                 .setOpenDirectRecipient(OpenDirectActivity.class).build(), this);
 
         MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
