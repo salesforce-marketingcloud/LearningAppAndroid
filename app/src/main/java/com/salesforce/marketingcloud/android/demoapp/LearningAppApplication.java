@@ -144,6 +144,18 @@ public class LearningAppApplication extends Application implements MarketingClou
                 sdk.getRegistrationManager().registerForRegistrationEvents(LearningAppApplication.this);
                 sdk.getRegionMessageManager().registerGeofenceMessageResponseListener(LearningAppApplication.this);
                 sdk.getRegionMessageManager().registerProximityMessageResponseListener(LearningAppApplication.this);
+
+                Attribute attribute = Attribute.a("", "");
+                sdk.getRegistrationManager().edit().setAttributes(attribute);
+
+                RegistrationManager.Editor editor = sdk.getRegistrationManager().edit();
+                editor.setAttribute("someAttribute", "someValue");
+                editor.setAttribute("someOtherAttribute", "someOtherValue");
+                editor.addTags("someTag", "someOtherTag");
+                editor.setContactKey("someUniqueCustomerIdentifier");
+                editor.commit(); // This will initiate a Contact/Registration Update with the Marketing Cloud Servers
+
+
             }
         });
     }
