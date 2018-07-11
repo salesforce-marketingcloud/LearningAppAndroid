@@ -23,7 +23,7 @@ import android.widget.TextView;
 
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
-import com.salesforce.marketingcloud.messages.cloudpage.CloudPageListAdapter;
+
 import com.salesforce.marketingcloud.messages.cloudpage.CloudPageMessage;
 
 import hugo.weaving.DebugLog;
