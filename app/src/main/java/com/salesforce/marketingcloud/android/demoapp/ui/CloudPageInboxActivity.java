@@ -9,6 +9,7 @@ package com.salesforce.marketingcloud.android.demoapp.ui;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -23,8 +24,7 @@ import android.widget.TextView;
 
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
-
-import com.salesforce.marketingcloud.messages.cloudpage.CloudPageMessage;
+import com.salesforce.marketingcloud.messages.inbox.InboxMessage;
 
 import hugo.weaving.DebugLog;
 
@@ -60,7 +60,7 @@ public class CloudPageInboxActivity extends AppCompatActivity {
         @Override
         public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
             CloudPageListAdapter adapter = (CloudPageListAdapter) parent.getAdapter();
-            CloudPageMessage message = (CloudPageMessage) adapter.getItem(position);
+            InboxMessage message = (InboxMessage) adapter.getItem(position);
 
             adapter.deleteMessage(message);
 
@@ -75,7 +75,7 @@ public class CloudPageInboxActivity extends AppCompatActivity {
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             CloudPageListAdapter adapter = (CloudPageListAdapter) parent.getAdapter();
-            CloudPageMessage message = (CloudPageMessage) adapter.getItem(position);
+            InboxMessage message = (InboxMessage) adapter.getItem(position);
 
             adapter.setMessageRead(message);
 
@@ -100,8 +100,8 @@ public class CloudPageInboxActivity extends AppCompatActivity {
         RadioGroup filterRadioGroup;
         final ListView cloudPageListView;
 
-        filterRadioGroup = (RadioGroup) findViewById(R.id.filterRadioGroup);
-        cloudPageListView = (ListView) findViewById(R.id.cloudPageListView);
+        filterRadioGroup = findViewById(R.id.filterRadioGroup);
+        cloudPageListView = findViewById(R.id.cloudPageListView);
 
         filterRadioGroup.setOnCheckedChangeListener(radioChangedListener);
 
@@ -110,7 +110,7 @@ public class CloudPageInboxActivity extends AppCompatActivity {
 
         MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
             @Override
-            public void ready(MarketingCloudSdk marketingCloudSdk) {
+            public void ready(@NonNull MarketingCloudSdk marketingCloudSdk) {
                 marketingCloudSdk.getAnalyticsManager().trackPageView("data://CloudPageInbox", "Cloud Page Inbox index view displayed", null, null);
                 cloudPageListAdapter = new MyCloudPageListAdapter(marketingCloudSdk);
                 cloudPageListView.setAdapter(cloudPageListAdapter);
@@ -140,8 +140,8 @@ public class CloudPageInboxActivity extends AppCompatActivity {
      */
     private class MyCloudPageListAdapter extends CloudPageListAdapter {
 
-        public MyCloudPageListAdapter(MarketingCloudSdk cloudSdk) {
-            super(cloudSdk.getCloudPageMessageManager());
+        MyCloudPageListAdapter(MarketingCloudSdk cloudSdk) {
+            super(cloudSdk.getInboxMessageManager());
         }
 
         @Override
@@ -153,17 +153,17 @@ public class CloudPageInboxActivity extends AppCompatActivity {
 
             LayoutInflater mInflater = (LayoutInflater) CloudPageInboxActivity.this.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
-            if (convertView == null) {
+            if (convertView == null && mInflater != null) {
                 view = mInflater.inflate(R.layout.cloudpage_list_item, parent, false);
             } else {
                 view = convertView;
             }
 
-            subject = (TextView) view.findViewById(R.id.cloudpageSubject);
-            icon = (ImageView) view.findViewById(R.id.readUnreadIcon);
-            time = (TextView) view.findViewById(R.id.timeTextView);
+            subject = view.findViewById(R.id.cloudpageSubject);
+            icon = view.findViewById(R.id.readUnreadIcon);
+            time = view.findViewById(R.id.timeTextView);
 
-            CloudPageMessage message = (CloudPageMessage) getItem(position);
+            InboxMessage message = (InboxMessage) getItem(position);
 
             if (message.read()) {
                 icon.setImageResource(R.drawable.mail);

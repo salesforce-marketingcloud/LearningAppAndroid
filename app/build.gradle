@@ -40,11 +40,14 @@ android {
 
 dependencies {
   /* SDK */
-  compile 'com.salesforce.marketingcloud:marketingcloudsdk:5.6.+'
+    implementation 'com.salesforce.marketingcloud:marketingcloudsdk:6.0.+'
 
-  compile 'com.google.android.gms:play-services-maps:11.8.0'
+    implementation 'com.google.android.gms:play-services-maps:15.0.1'
+    implementation 'com.google.android.gms:play-services-location:15.0.1'
 
   // This particular app, requires appCompat and design
-  compile 'com.android.support:appcompat-v7:27.1.1'
-  compile 'com.android.support:design:27.1.1'
+  implementation 'com.android.support:appcompat-v7:27.1.1'
+  implementation 'com.android.support:design:27.1.1'
 }
+
+apply plugin: 'com.google.gms.google-services'

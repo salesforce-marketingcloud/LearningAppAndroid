@@ -11,8 +11,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,17 +25,16 @@ import com.salesforce.marketingcloud.InitializationStatus;
 import com.salesforce.marketingcloud.MCLogListener;
 import com.salesforce.marketingcloud.MarketingCloudConfig;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
+import com.salesforce.marketingcloud.UrlHandler;
 import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
-import com.salesforce.marketingcloud.android.demoapp.ui.OpenDirectActivity;
 import com.salesforce.marketingcloud.messages.Region;
 import com.salesforce.marketingcloud.messages.RegionMessageManager;
 import com.salesforce.marketingcloud.messages.geofence.GeofenceMessageResponse;
 import com.salesforce.marketingcloud.messages.proximity.ProximityMessageResponse;
 import com.salesforce.marketingcloud.notifications.NotificationManager;
 import com.salesforce.marketingcloud.notifications.NotificationMessage;
-import com.salesforce.marketingcloud.registration.Attribute;
 import com.salesforce.marketingcloud.registration.Registration;
 import com.salesforce.marketingcloud.registration.RegistrationManager;
 
@@ -43,6 +44,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.TimeZone;
 
 import hugo.weaving.DebugLog;
@@ -58,7 +60,7 @@ import hugo.weaving.DebugLog;
 @DebugLog
 public class LearningAppApplication extends Application implements MarketingCloudSdk.InitializationListener,
         RegistrationManager.RegistrationEventListener, RegionMessageManager.GeofenceMessageResponseListener,
-        RegionMessageManager.ProximityMessageResponseListener, NotificationManager.NotificationBuilder {
+        RegionMessageManager.ProximityMessageResponseListener, NotificationManager.NotificationBuilder, UrlHandler {
 
     /**
      * Set to true to show how Salesforce analytics will save statistics for
@@ -69,7 +71,7 @@ public class LearningAppApplication extends Application implements MarketingClou
      * Set to true to test how notifications can send your app customers to
      * different web pages.
      */
-    public static final boolean CLOUD_PAGES_ENABLED = true;
+    public static final boolean INBOX_ENABLED = true;
     /**
      * Set to true to show how Predictive Intelligence analytics (PIAnalytics) will
      * save statistics for how your customers use the app (by invitation at this point).
@@ -104,17 +106,12 @@ public class LearningAppApplication extends Application implements MarketingClou
      * AppId and AccessToken: these values are taken from the Marketing Cloud definition for your app.
      * </li>
      * <li>
-     * GcmSenderId for the push notifications: this value is taken from the Google API console.
+     * SenderID for the push notifications: this value is taken from the Google API console.
      * </li>
      * <li>
      * You also set whether you enable LocationManager, CloudPages, and Analytics.
      * </li>
      * </ul>
-     * <p/>
-     * <p/>
-     * The application keys are stored in a separate file (secrets.xml) in order to provide
-     * centralized access to these keys and to ensure you use the appropriate keys when
-     * compiling the test and production versions.
      **/
     @Override
     public void onCreate() {
@@ -125,18 +122,29 @@ public class LearningAppApplication extends Application implements MarketingClou
         /** Register to receive push notifications. */
         MarketingCloudSdk.setLogLevel(BuildConfig.DEBUG ? Log.VERBOSE : Log.ERROR);
         MarketingCloudSdk.setLogListener(new MCLogListener.AndroidLogListener());
-        MarketingCloudSdk.init(this, MarketingCloudConfig.builder().setApplicationId(getString(R.string.app_id))
-                .setAccessToken(getString(R.string.access_token))
-                .setGcmSenderId(getString(R.string.gcm_sender_id))
-                .setAnalyticsEnabled(ANALYTICS_ENABLED)
-                .setGeofencingEnabled(LOCATION_ENABLED)
-                .setPiAnalyticsEnabled(PI_ENABLED)
-                .setCloudPagesEnabled(CLOUD_PAGES_ENABLED)
-                .setProximityEnabled(PROXIMITY_ENABLED)
+        MarketingCloudSdk.init(this, MarketingCloudConfig.builder() //
+
+                // PROVIDE YOUR APPLICATION'S VALUES
+                .setApplicationId() // ENTER YOUR MARKETING CLOUD APPLICATION ID HERE
+                .setAccessToken() // ENTER YOUR MARKETING CLOUD ACCESS TOKEN HERE
+                .setSenderId() // ENTER YOUR GOOGLE SENDER ID HERE
+
+                // REQUIRED IF YOUR APPLICATION TARGETS ANDROID O OR GREATER
                 .setNotificationSmallIconResId(R.drawable.ic_stat_app_logo_transparent)
-                .setNotificationBuilder(this)
                 .setNotificationChannelName("Marketing Notifications")
-                .setOpenDirectRecipient(OpenDirectActivity.class).build(), this);
+
+                // ENABLE MARKETING CLOUD FEATURES
+                .setAnalyticsEnabled(ANALYTICS_ENABLED)
+                .setPiAnalyticsEnabled(PI_ENABLED)
+                .setInboxEnabled(INBOX_ENABLED)
+                .setGeofencingEnabled(LOCATION_ENABLED)
+                .setProximityEnabled(PROXIMITY_ENABLED)
+
+                // CUSTOMIZE NOTIFICATION HANDLING
+                .setNotificationBuilder(this)
+                .setUrlHandler(this)
+
+                .build(), this);
 
         MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
             @Override
@@ -163,9 +171,9 @@ public class LearningAppApplication extends Application implements MarketingClou
 
             if (status.locationsError()) {
                 final GoogleApiAvailability googleApiAvailability = GoogleApiAvailability.getInstance();
-                Log.i(TAG, String.format(Locale.ENGLISH, "Google Play Services Availability: %s", googleApiAvailability.getErrorString(status.locationPlayServicesStatus())));
-                if (googleApiAvailability.isUserResolvableError(status.locationPlayServicesStatus())) {
-                    googleApiAvailability.showErrorNotification(LearningAppApplication.this, status.locationPlayServicesStatus());
+                Log.i(TAG, String.format(Locale.ENGLISH, "Google Play Services Availability: %s", googleApiAvailability.getErrorString(status.playServicesStatus())));
+                if (googleApiAvailability.isUserResolvableError(status.playServicesStatus())) {
+                    googleApiAvailability.showErrorNotification(LearningAppApplication.this, status.playServicesStatus());
                 }
             }
         }
@@ -215,18 +223,8 @@ public class LearningAppApplication extends Application implements MarketingClou
     @Override
     public void onRegistrationReceived(@NonNull Registration registration) {
         MarketingCloudSdk.getInstance().getAnalyticsManager().trackPageView("data://RegistrationEvent", "Registration Event Completed");
-        if (MarketingCloudSdk.getLogLevel() <= Log.DEBUG) {
-            Log.d(TAG, "Marketing Cloud update occurred.");
-            Log.d(TAG, "Device ID:" + registration.deviceId());
-            Log.d(TAG, "Device Token:" + registration.systemToken());
-            Log.d(TAG, "Subscriber key:" + registration.contactKey());
-            for (Attribute attribute : registration.attributes()) {
-                Log.d(TAG, "Attribute " + (attribute).key() + ": [" + (attribute).value() + "]");
-            }
-            Log.d(TAG, "Tags: " + registration.tags());
-            Log.d(TAG, "Language: " + registration.locale());
-            Log.d(TAG, String.format("Last sent: %1$d", System.currentTimeMillis()));
-        }
+        Log.d(TAG, registration.toString());
+        Log.d(TAG, String.format("Last sent: %1$d", System.currentTimeMillis()));
     }
 
     /**
@@ -272,5 +270,16 @@ public class LearningAppApplication extends Application implements MarketingClou
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("lastBeaconReceivedEventDatetime", lastBeaconReceivedEventDatetime);
         }
+    }
+
+    @Nullable
+    @Override
+    public PendingIntent handleUrl(@NonNull Context context, @NonNull String url, @NonNull String urlSource) {
+        return PendingIntent.getActivity(
+                context,
+                new Random().nextInt(),
+                new Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+                PendingIntent.FLAG_UPDATE_CURRENT
+        );
     }
 }

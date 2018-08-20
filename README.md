@@ -20,15 +20,7 @@ Provisioning ensures that users receive push messages from your app. The first s
 To connect your Android app to Marketing Cloud, [create a MobilePush app in App Center](http://salesforce-marketingcloud.github.io/JB4A-SDK-Android/create-apps/create-apps-app-center.html). App Center is the central development console for using Fuel APIs and building Marketing Cloud apps.
 
 ###Add App Center Credentials to your Application
-On Android, we use a 'secrets.xml' file to contain the application credentials given by App Center. Inside the secrets.cml file, set the following:
-
-**secrets.xml**
-
-1. `app_id`: The App ID for your development app as defined in the App Center section of Marketing Cloud.
-
-2. `gcm_sender_id`: The Google Cloud Messaging ID as defined in the Google Cloud Developers Console for your app.
-
-3. `access_token`: The Access Token for your development app as defined in the App Center section of Marketing Cloud.
+In the Application class you will find the SDK's initialization code.  Set your Application ID, Access Token and Sender ID as well as any features you want to enable.
 
 # Resources
 

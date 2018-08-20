@@ -1,6 +1,7 @@
 package com.salesforce.marketingcloud.android.demoapp.ui;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -8,7 +9,6 @@ import android.util.Log;
 import android.webkit.URLUtil;
 
 import com.salesforce.marketingcloud.android.demoapp.R;
-import com.salesforce.marketingcloud.notifications.DefaultUrlPresenter;
 import com.salesforce.marketingcloud.notifications.NotificationManager;
 import com.salesforce.marketingcloud.notifications.NotificationMessage;
 
@@ -41,7 +41,7 @@ public class OpenDirectActivity extends AppCompatActivity {
                     break;
                 default:
                     if (URLUtil.isValidUrl(url)) {
-                        intent = DefaultUrlPresenter.intentForPresenter(this, notificationMessage);
+                        intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
                     }
             }
         }

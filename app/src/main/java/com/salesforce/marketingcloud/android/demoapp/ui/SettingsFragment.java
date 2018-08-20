@@ -31,11 +31,12 @@ import android.widget.EditText;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.android.demoapp.utils.Utils;
-import com.salesforce.marketingcloud.registration.Attribute;
 import com.salesforce.marketingcloud.registration.RegistrationManager;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 
 import hugo.weaving.DebugLog;
@@ -87,7 +88,7 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
     // Error/Exception Handling and Progress Indicator
     private ProgressDialog dialog;
     // Elements we'll use with the ETPush SDK
-    private Set<Attribute> attributes = new HashSet<>();
+    private Map<String, String> attributes = new HashMap<>();
     private String subscriberKey;
     private MarketingCloudSdk cloudSdk;
     private String lastnameAttribute;
@@ -120,12 +121,12 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
         progressDialogHandler.removeCallbacks(dialogRunnable);
         try {
             RegistrationManager registrationManager = marketingCloudSdk.getRegistrationManager();
-            for (Attribute attribute : registrationManager.getAttributes()) {
-                if (attribute.key().equals("FirstName") || attribute.key().equals("LastName")) {
-                    attributes.add(attribute);
+            for (String key : registrationManager.getAttributes().keySet()) {
+                if (key.equals("FirstName") || key.equals("LastName")) {
+                    attributes.put(key, registrationManager.getAttributes().get(key));
                 }
             }
-            attributes.addAll(registrationManager.getAttributes());
+            attributes.putAll(registrationManager.getAttributes());
             subscriberKey = registrationManager.getContactKey();
             tags.addAll(registrationManager.getTags());
         } catch (Exception e) {
@@ -205,17 +206,17 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
 
     }
 
-    private void displayAttributes(@NonNull final Set<Attribute> attributes, @NonNull final MarketingCloudSdk cloudSdk) {
+    private void displayAttributes(@NonNull final Map<String, String> attributes, @NonNull final MarketingCloudSdk cloudSdk) {
         Log.i(TAG, String.format(Locale.ENGLISH, "ATTRIBUTES: %s", attributes));
         //saveAttributesToSharedPreferences(attributes);
         String firstName = null;
         String lastName = null;
         if (attributes != null) {
-            for (Attribute attribute : attributes) {
-                if (attribute.key().equalsIgnoreCase("firstname")) {
-                    firstName = attribute.value();
-                } else if (attribute.key().equalsIgnoreCase("lastname")) {
-                    lastName = attribute.value();
+            for (String key : attributes.keySet()) {
+                if (key.equalsIgnoreCase("firstname")) {
+                    firstName = attributes.get(key);
+                } else if (key.equalsIgnoreCase("lastname")) {
+                    lastName = attributes.get(key);
                 }
             }
         }
@@ -374,7 +375,7 @@ public class SettingsFragment extends PreferenceFragment implements MarketingClo
      */
     @SuppressLint("CommitPrefEdits")
     private void saveTagsToSharedPreferences(Set<String> pSet) {
-        if(pSet == null) {
+        if (pSet == null) {
             return;
         }
         /* Retrieves the tags stored in Shared preferences */

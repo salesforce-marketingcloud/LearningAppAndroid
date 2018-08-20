@@ -7,6 +7,7 @@
 package com.salesforce.marketingcloud.android.demoapp.ui;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
@@ -47,7 +48,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
             @Override
-            public void ready(MarketingCloudSdk marketingCloudSdk) {
+            public void ready(@NonNull MarketingCloudSdk marketingCloudSdk) {
                 marketingCloudSdk.getAnalyticsManager().trackPageView("data://MapActivity", getResources().getString(R.string.app_name), null, null);
             }
         });
@@ -75,15 +76,15 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     /**
      * Configures the google map
-     * In case there is geolocations or beacons
+     * In case there is GeoLocations or Beacons
      *
      * @param map Google map to work on
      */
     private void setUpMap(GoogleMap map) {
         MCLocationManager lm = MCLocationManager.getInstance();
 
-        /* lastCoord is the location which the map will show, the default being San Francisco */
-        LatLng lastCoord = new LatLng(Double.parseDouble(getResources().getString(R.string.default_latitude)),
+        /* lastCoordinate is the location which the map will show, the default being San Francisco */
+        LatLng lastCoordinate = new LatLng(Double.parseDouble(getResources().getString(R.string.default_latitude)),
                 Double.parseDouble(getResources().getString(R.string.default_longitude)));
 
         /* Loops through the beacons and set them in the map */
@@ -97,7 +98,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .radius(beacon.getRadius())
                     .strokeColor(getResources().getColor(R.color.beaconOuterCircle))
                     .fillColor(getResources().getColor(R.color.beaconInnerCircle)));
-            lastCoord = beacon.getCoordenates();
+            lastCoordinate = beacon.getCoordenates();
         }
 
         /* Loops through the locations and set them in the map */
@@ -108,11 +109,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .radius(location.getRadius())
                     .strokeColor(getResources().getColor(R.color.geoLocationOuterCircle))
                     .fillColor(getResources().getColor(R.color.geoLocationInnerCircle)));
-            lastCoord = location.getCoordenates();
+            lastCoordinate = location.getCoordenates();
         }
-        /* Centers the map in the last coordenate found and sets the zoom */
+        /* Centers the map in the last coordinate found and sets the zoom */
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(lastCoord).zoom(getResources().getInteger(R.integer.map_zoom)).build();
+                .target(lastCoordinate).zoom(getResources().getInteger(R.integer.map_zoom)).build();
         map.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
     }
