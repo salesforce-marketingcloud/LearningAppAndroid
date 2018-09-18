@@ -42,7 +42,7 @@ dependencies {
   /* SDK */
   compile 'com.salesforce.marketingcloud:marketingcloudsdk:5.5.+'
 
-  compile 'com.google.android.gms:play-services-maps:11.0.1'
+  compile 'com.google.android.gms:play-services-maps:11.8.0'
 
   // This particular app, requires appCompat and design
   compile 'com.android.support:appcompat-v7:26.1.0'
