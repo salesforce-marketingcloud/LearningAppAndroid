@@ -11,10 +11,8 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.Uri;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -25,7 +23,6 @@ import com.salesforce.marketingcloud.InitializationStatus;
 import com.salesforce.marketingcloud.MCLogListener;
 import com.salesforce.marketingcloud.MarketingCloudConfig;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
-import com.salesforce.marketingcloud.UrlHandler;
 import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
@@ -33,6 +30,7 @@ import com.salesforce.marketingcloud.messages.Region;
 import com.salesforce.marketingcloud.messages.RegionMessageManager;
 import com.salesforce.marketingcloud.messages.geofence.GeofenceMessageResponse;
 import com.salesforce.marketingcloud.messages.proximity.ProximityMessageResponse;
+import com.salesforce.marketingcloud.notifications.NotificationCustomizationOptions;
 import com.salesforce.marketingcloud.notifications.NotificationManager;
 import com.salesforce.marketingcloud.notifications.NotificationMessage;
 import com.salesforce.marketingcloud.registration.Registration;
@@ -44,7 +42,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
 import java.util.TimeZone;
 
 import hugo.weaving.DebugLog;
@@ -60,7 +57,7 @@ import hugo.weaving.DebugLog;
 @DebugLog
 public class LearningAppApplication extends Application implements MarketingCloudSdk.InitializationListener,
         RegistrationManager.RegistrationEventListener, RegionMessageManager.GeofenceMessageResponseListener,
-        RegionMessageManager.ProximityMessageResponseListener, NotificationManager.NotificationBuilder, UrlHandler {
+        RegionMessageManager.ProximityMessageResponseListener, NotificationManager.NotificationBuilder {
 
     /**
      * Set to true to show how Salesforce analytics will save statistics for
@@ -129,10 +126,6 @@ public class LearningAppApplication extends Application implements MarketingClou
                 .setAccessToken() // ENTER YOUR MARKETING CLOUD ACCESS TOKEN HERE
                 .setSenderId() // ENTER YOUR GOOGLE SENDER ID HERE
 
-                // REQUIRED IF YOUR APPLICATION TARGETS ANDROID O OR GREATER
-                .setNotificationSmallIconResId(R.drawable.ic_stat_app_logo_transparent)
-                .setNotificationChannelName("Marketing Notifications")
-
                 // ENABLE MARKETING CLOUD FEATURES
                 .setAnalyticsEnabled(ANALYTICS_ENABLED)
                 .setPiAnalyticsEnabled(PI_ENABLED)
@@ -140,11 +133,8 @@ public class LearningAppApplication extends Application implements MarketingClou
                 .setGeofencingEnabled(LOCATION_ENABLED)
                 .setProximityEnabled(PROXIMITY_ENABLED)
 
-                // CUSTOMIZE NOTIFICATION HANDLING
-                .setNotificationBuilder(this)
-                .setUrlHandler(this)
-
-                .build(), this);
+                .setNotificationCustomizationOptions(NotificationCustomizationOptions.create(R.drawable.ic_stat_app_logo_transparent))
+                .build(this), this);
 
         MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
             @Override
@@ -182,7 +172,7 @@ public class LearningAppApplication extends Application implements MarketingClou
 
     @Override
     public NotificationCompat.Builder setupNotificationBuilder(@NonNull Context context, @NonNull NotificationMessage notificationMessage) {
-        NotificationCompat.Builder builder = NotificationManager.setupNotificationBuilder(context, notificationMessage);
+        NotificationCompat.Builder builder = NotificationManager.getDefaultNotificationBuilder(context, notificationMessage, NotificationManager.createDefaultNotificationChannel(context), R.drawable.ic_stat_app_logo_transparent);
 
         Map<String, String> customKeys = notificationMessage.customKeys();
         if (!customKeys.containsKey("category") || !customKeys.containsKey("sale_date")) {
@@ -270,16 +260,5 @@ public class LearningAppApplication extends Application implements MarketingClou
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.putString("lastBeaconReceivedEventDatetime", lastBeaconReceivedEventDatetime);
         }
-    }
-
-    @Nullable
-    @Override
-    public PendingIntent handleUrl(@NonNull Context context, @NonNull String url, @NonNull String urlSource) {
-        return PendingIntent.getActivity(
-                context,
-                new Random().nextInt(),
-                new Intent(Intent.ACTION_VIEW, Uri.parse(url)),
-                PendingIntent.FLAG_UPDATE_CURRENT
-        );
     }
 }
