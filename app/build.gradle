@@ -9,14 +9,14 @@ apply plugin: 'com.jakewharton.hugo'
 
 android {
   /* Change these to fit your applications requirements! */
-  compileSdkVersion 27
-  buildToolsVersion = '27.0.3'
+  compileSdkVersion 28
+  buildToolsVersion = '28.0.3'
 
   defaultConfig {
     applicationId "com.salesforce.marketingcloud.android.demoapp"
     minSdkVersion 16
     // MIN SDK for use with MarketingCloudSdk is 15, but this app uses 16 for maps compatibility
-    targetSdkVersion 27
+    targetSdkVersion 28
     versionCode 1
     versionName "1.0"
 
@@ -40,19 +40,13 @@ android {
 
 dependencies {
   /* SDK */
-    implementation 'com.salesforce.marketingcloud:marketingcloudsdk:6.0.+'
+  implementation 'com.salesforce.marketingcloud:marketingcloudsdk:6.1.+'
 
-    implementation 'com.google.android.gms:play-services-maps:15.0.1'
-    implementation 'com.google.android.gms:play-services-location:15.0.1'
+  implementation 'com.google.android.gms:play-services-maps:16.1.0'
+  implementation 'com.google.android.gms:play-services-location:16.0.0'
 
   // This particular app, requires appCompat and design
-  implementation 'com.android.support:appcompat-v7:27.1.1'
-  implementation 'com.android.support:design:27.1.1'
-}
-
-configurations.all {
-  resolutionStrategy {
-    force 'com.android.support:support-v4:27.1.0'
-  }
+  implementation 'com.android.support:appcompat-v7:28.0.0'
+  implementation 'com.android.support:design:28.0.0'
 }
 apply plugin: 'com.google.gms.google-services'
