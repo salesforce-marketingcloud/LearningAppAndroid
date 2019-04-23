@@ -39,8 +39,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import hugo.weaving.DebugLog;
-
 /**
  * SettingsFragment handles settings that would normally be included within your customer facing app.
  * These settings that are sent to the Marketing Cloud will take up to 15 minutes to take effect.
@@ -69,7 +67,6 @@ import hugo.weaving.DebugLog;
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class SettingsFragment extends PreferenceFragment implements MarketingCloudSdk.WhenReadyListener {
     private static final String TAG = "~#SettingsFragment";
 

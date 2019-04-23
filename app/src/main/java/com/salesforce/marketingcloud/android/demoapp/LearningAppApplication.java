@@ -44,9 +44,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
 
-import hugo.weaving.DebugLog;
-
-
 /**
  * LearningAppApplication is the primary application class.
  * This class extends Application to provide global activities.
@@ -54,7 +51,6 @@ import hugo.weaving.DebugLog;
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class LearningAppApplication extends Application implements MarketingCloudSdk.InitializationListener,
         RegistrationManager.RegistrationEventListener, RegionMessageManager.GeofenceMessageResponseListener,
         RegionMessageManager.ProximityMessageResponseListener, NotificationManager.NotificationBuilder {
@@ -125,6 +121,7 @@ public class LearningAppApplication extends Application implements MarketingClou
                 .setApplicationId() // ENTER YOUR MARKETING CLOUD APPLICATION ID HERE
                 .setAccessToken() // ENTER YOUR MARKETING CLOUD ACCESS TOKEN HERE
                 .setSenderId() // ENTER YOUR GOOGLE SENDER ID HERE
+                .setMarketingCloudServerUrl() // ENTER YOUR MARKETING CLOUD URL
 
                 // ENABLE MARKETING CLOUD FEATURES
                 .setAnalyticsEnabled(ANALYTICS_ENABLED)

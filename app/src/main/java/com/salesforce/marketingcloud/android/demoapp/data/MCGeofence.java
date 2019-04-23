@@ -8,14 +8,11 @@ package com.salesforce.marketingcloud.android.demoapp.data;
 
 import com.google.android.gms.maps.model.LatLng;
 
-import hugo.weaving.DebugLog;
-
 /**
  * MCGeofence class stores geolocation message data.
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class MCGeofence {
 
     private LatLng coordenates;

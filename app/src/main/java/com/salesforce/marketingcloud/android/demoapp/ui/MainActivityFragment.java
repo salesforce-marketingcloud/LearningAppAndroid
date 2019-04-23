@@ -16,14 +16,11 @@ import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.analytics.AnalyticsManager;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
-import hugo.weaving.DebugLog;
-
 /**
  * A placeholder fragment containing the home view.
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class MainActivityFragment extends Fragment {
 
     @Override

@@ -8,15 +8,12 @@ package com.salesforce.marketingcloud.android.demoapp.data;
 
 import java.util.ArrayList;
 
-import hugo.weaving.DebugLog;
-
 /**
  * MCLocationManager class manages the geofence and beacon location messages.
  *
  * @author Salesforce &reg; 2017.
  *
  */
-@DebugLog
 public class MCLocationManager {
 
     private static MCLocationManager ourInstance = null;

@@ -13,8 +13,6 @@ import android.widget.ListView;
 
 import com.salesforce.marketingcloud.android.demoapp.R;
 
-import hugo.weaving.DebugLog;
-
 /**
  * SettingsActivity is the primary settings activity.
  *
@@ -25,8 +23,6 @@ import hugo.weaving.DebugLog;
  *
  * @author Salesforce &reg; 2017.
  */
-
-@DebugLog
 public class SettingsActivity extends AppCompatActivity {
 
     private boolean mListStyled;

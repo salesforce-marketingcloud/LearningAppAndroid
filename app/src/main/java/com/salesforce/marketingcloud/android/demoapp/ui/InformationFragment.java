@@ -11,14 +11,9 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import com.salesforce.marketingcloud.android.demoapp.LearningAppApplication;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
-import hugo.weaving.DebugLog;
-
-@DebugLog
 public class InformationFragment extends android.app.Fragment {
     private static final String TAG = "~#InformationFragment";
 

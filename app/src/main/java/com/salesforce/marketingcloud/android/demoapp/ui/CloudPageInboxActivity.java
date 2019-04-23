@@ -26,14 +26,11 @@ import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.messages.inbox.InboxMessage;
 
-import hugo.weaving.DebugLog;
-
 /**
  * CloudPageInboxActivity works as an inbox for the Cloud Pages received.
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class CloudPageInboxActivity extends AppCompatActivity {
     private MyCloudPageListAdapter cloudPageListAdapter;
     /**

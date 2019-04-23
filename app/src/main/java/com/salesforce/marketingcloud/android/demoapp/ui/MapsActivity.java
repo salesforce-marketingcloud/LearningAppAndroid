@@ -27,14 +27,11 @@ import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
 
-import hugo.weaving.DebugLog;
-
 /**
  * MapsActivity displays a Google map with the regions configured at Marketing Cloud.
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     @Override

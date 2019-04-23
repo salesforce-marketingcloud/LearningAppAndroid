@@ -15,14 +15,11 @@ import android.widget.LinearLayout;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
-import hugo.weaving.DebugLog;
-
 /**
  * CloudPageActivity displays a Cloud Page.
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class CloudPageActivity extends AppCompatActivity {
 
     @Override

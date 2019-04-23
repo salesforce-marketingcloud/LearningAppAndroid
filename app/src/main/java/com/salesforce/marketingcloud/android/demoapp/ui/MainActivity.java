@@ -23,8 +23,6 @@ import com.salesforce.marketingcloud.android.demoapp.R;
 import com.salesforce.marketingcloud.android.demoapp.utils.ActivityPermissionDelegate;
 import com.salesforce.marketingcloud.messages.RegionMessageManager;
 
-import hugo.weaving.DebugLog;
-
 /**
  * MainActivity is the primary activity.
  * <p>
@@ -32,7 +30,6 @@ import hugo.weaving.DebugLog;
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class MainActivity extends AppCompatActivity implements MarketingCloudSdk.WhenReadyListener {
 
     private final static String TAG = "~#MAIN ACTIVITY";

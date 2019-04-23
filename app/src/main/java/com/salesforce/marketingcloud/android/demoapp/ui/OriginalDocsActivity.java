@@ -16,14 +16,11 @@ import android.webkit.WebViewClient;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
 import com.salesforce.marketingcloud.android.demoapp.R;
 
-import hugo.weaving.DebugLog;
-
 /**
  * CloudPageInboxActivity works as an inbox for the Cloud Pages received.
  *
  * @author Salesforce &reg; 2017.
  */
-@DebugLog
 public class OriginalDocsActivity extends AppCompatActivity {
 
     @Override
