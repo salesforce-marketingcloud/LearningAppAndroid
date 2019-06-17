@@ -36,7 +36,7 @@ android {
 
 dependencies {
   /* SDK */
-  implementation 'com.salesforce.marketingcloud:marketingcloudsdk:6.2.+'
+  implementation 'com.salesforce.marketingcloud:marketingcloudsdk:6.3.+'
 
   implementation 'com.google.android.gms:play-services-maps:16.1.0'
   implementation 'com.google.android.gms:play-services-location:16.0.0'

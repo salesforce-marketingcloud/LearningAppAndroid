@@ -11,8 +11,10 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.provider.CalendarContract;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
 import android.util.Log;
@@ -23,6 +25,7 @@ import com.salesforce.marketingcloud.InitializationStatus;
 import com.salesforce.marketingcloud.MCLogListener;
 import com.salesforce.marketingcloud.MarketingCloudConfig;
 import com.salesforce.marketingcloud.MarketingCloudSdk;
+import com.salesforce.marketingcloud.UrlHandler;
 import com.salesforce.marketingcloud.android.demoapp.data.MCBeacon;
 import com.salesforce.marketingcloud.android.demoapp.data.MCGeofence;
 import com.salesforce.marketingcloud.android.demoapp.data.MCLocationManager;
@@ -129,8 +132,19 @@ public class LearningAppApplication extends Application implements MarketingClou
                 .setInboxEnabled(INBOX_ENABLED)
                 .setGeofencingEnabled(LOCATION_ENABLED)
                 .setProximityEnabled(PROXIMITY_ENABLED)
-
                 .setNotificationCustomizationOptions(NotificationCustomizationOptions.create(R.drawable.ic_stat_app_logo_transparent))
+                .setUrlHandler(new UrlHandler() {
+                    @Nullable
+                    @Override
+                    public PendingIntent handleUrl(@NonNull Context context, @NonNull String url, @NonNull String type) {
+                        // Open IAM URLs in device browser.
+                        return PendingIntent.getActivity(
+                                context,
+                                1,
+                                new Intent(Intent.ACTION_VIEW, Uri.parse(url)),
+                                PendingIntent.FLAG_UPDATE_CURRENT);
+                    }
+                })
                 .build(this), this);
 
         MarketingCloudSdk.requestSdk(new MarketingCloudSdk.WhenReadyListener() {
